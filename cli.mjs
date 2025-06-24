@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import prompts from 'prompts'
 import { execSync } from 'child_process'
 import fs from 'fs'
