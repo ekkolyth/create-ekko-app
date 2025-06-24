@@ -5,13 +5,13 @@ import { execSync } from 'child_process'
 import fs from 'fs'
 import path from 'path'
 
-// Store answers and display checkmarks like create-next-app
 const answers = {}
 const onSubmit = (prompt, answer) => {
   answers[prompt.name] = answer
+  return true
 }
 
-const response = await prompts([
+const questions = [
   {
     type: 'text',
     name: 'projectName',
@@ -21,22 +21,27 @@ const response = await prompts([
   {
     type: 'confirm',
     name: 'useBun',
-    message: 'Use Bun instead of npm for installs?',
+    message: 'Use Bun instead of npm for installs (y/n)',
     initial: false
   },
   {
     type: 'confirm',
     name: 'useShadcn',
-    message: 'Install and configure shadcn/ui?',
+    message: 'Install and configure shadcn/ui (y/n)',
     initial: true
   },
   {
     type: 'confirm',
     name: 'useEmail',
-    message: 'Include Email Services (React Email + Resend)?',
+    message: 'Include Email Services (React Email + Resend) (y/n)',
     initial: true
   }
-], { onSubmit })
+]
+
+const response = await prompts(questions, {
+  onSubmit,
+  stdout: process.stdout
+})
 
 const { projectName, useBun, useShadcn, useEmail } = response
 
