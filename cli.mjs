@@ -21,19 +21,19 @@ const questions = [
   {
     type: 'confirm',
     name: 'useBun',
-    message: 'Use Bun instead of npm for installs (y/n)',
+    message: 'Use Bun instead of npm for installs',
     initial: false
   },
   {
     type: 'confirm',
     name: 'useShadcn',
-    message: 'Install and configure shadcn/ui (y/n)',
+    message: 'Install and configure shadcn/ui',
     initial: true
   },
   {
     type: 'confirm',
     name: 'useEmail',
-    message: 'Include Email Services (React Email + Resend) (y/n)',
+    message: 'Include Email Services (React Email + Resend)',
     initial: true
   }
 ]
@@ -45,24 +45,19 @@ const response = await prompts(questions, {
 
 const { projectName, useBun, useShadcn, useEmail } = response
 
-// Create project root and cd into it
 fs.mkdirSync(projectName)
 process.chdir(projectName)
 
-// Run create-next-app inside /web
 execSync(`npx create-next-app@latest web`, { stdio: 'inherit' })
 
-// Change into the frontend directory
 process.chdir('web')
 
-// Always install icon libraries
 console.log('\n✔ Installing react-icons and heroicons...')
 const iconsCmd = useBun
   ? 'bun add react-icons @heroicons/react'
   : 'npm install react-icons @heroicons/react'
 execSync(iconsCmd, { stdio: 'inherit' })
 
-// Optional: Shadcn setup
 if (useShadcn) {
   console.log('\n✔ Installing shadcn/ui...')
   const shadcnCmd = useBun
@@ -74,7 +69,6 @@ if (useShadcn) {
   execSync('npx shadcn-ui@latest init', { stdio: 'inherit' })
 }
 
-// Optional: Email setup
 if (useEmail) {
   console.log('\n✔ Installing React Email + Resend...')
   const emailCmd = useBun
@@ -106,7 +100,6 @@ export function WelcomeEmail() {
   )
 }
 
-// Final message
 console.log('\n✅ Done! Your Ekko app is ready.')
 console.log(`\n👉 To get started:`)
 console.log(`  cd ${projectName}/web`)
