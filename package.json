@@ -4,7 +4,7 @@
   "description": "Custom Next.js starter CLI with Shadcn, Resend, Bun, and more.",
   "type": "module",
   "bin": {
-    "create-ekko-app": "./cli.js"
+    "create-ekko-app": "./cli.mjs"
   },
   "keywords": [
     "nextjs",
