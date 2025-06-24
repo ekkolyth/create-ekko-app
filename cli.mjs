@@ -5,12 +5,6 @@ import { execSync } from 'child_process'
 import fs from 'fs'
 import path from 'path'
 
-const answers = {}
-const onSubmit = (prompt, answer) => {
-  answers[prompt.name] = answer
-  return true
-}
-
 const questions = [
   {
     type: 'text',
@@ -39,9 +33,13 @@ const questions = [
 ]
 
 const response = await prompts(questions, {
-  onSubmit,
   stdout: process.stdout
 })
+
+if (!response.projectName) {
+  console.log('\n❌ Setup was cancelled or ran in a non-interactive shell. Exiting.\n')
+  process.exit(0)
+}
 
 const { projectName, useBun, useShadcn, useEmail } = response
 
@@ -110,4 +108,4 @@ if (useEmail) {
   console.log(`  ${projectName}/web/emails/WelcomeEmail.tsx`)
 }
 
-console.log('\n🧠 Don’t forget to set your Resend API key in your .env file to send email.\n')
+console.log('\n🧠 Don't forget to set your Resend API key in your .env file to send email.\n')
