@@ -5,107 +5,116 @@ import { execSync } from 'child_process'
 import fs from 'fs'
 import path from 'path'
 
-const questions = [
-  {
-    type: 'text',
-    name: 'projectName',
-    message: 'What is your project called?',
-    initial: 'my-ekko-app'
-  },
-  {
-    type: 'confirm',
-    name: 'useBun',
-    message: 'Use Bun instead of npm for installs',
-    initial: false
-  },
-  {
-    type: 'confirm',
-    name: 'useShadcn',
-    message: 'Install and configure shadcn/ui',
-    initial: true
-  },
-  {
-    type: 'confirm',
-    name: 'useEmail',
-    message: 'Include Email Services (React Email + Resend)',
-    initial: true
+function run(cmd, options = {}) {
+  execSync(cmd, { stdio: 'inherit', ...options })
+}
+
+const cliArgName = process.argv[2]
+
+let projectName = cliArgName
+if (!projectName) {
+  const nameAnswer = await prompts(
+    {
+      type: 'text',
+      name: 'projectName',
+      message: 'What is your project called?',
+      initial: 'my-app'
+    },
+    { stdout: process.stdout }
+  )
+  if (!nameAnswer.projectName) {
+    console.log('\n❌ Setup was cancelled or ran in a non-interactive shell. Exiting.\n')
+    process.exit(0)
   }
-]
+  projectName = nameAnswer.projectName
+}
 
-const response = await prompts(questions, {
-  stdout: process.stdout
-})
+// 1) Let create-next-app run with its own interactive prompts
+console.log('\n⚙️  Creating Next.js app with create-next-app...')
+run(`pnpm dlx create-next-app@latest ${projectName}`)
 
-if (!response.projectName) {
-  console.log('\n❌ Setup was cancelled or ran in a non-interactive shell. Exiting.\n')
+// 2) Move into the project directory
+process.chdir(projectName)
+
+// 3) Ask follow-up questions
+const followUps = await prompts(
+  [
+    {
+      type: 'confirm',
+      name: 'useShadcn',
+      message: 'Do you want to use shadcn? (Yes/No)',
+      initial: true
+    },
+    {
+      type: 'confirm',
+      name: 'useClerk',
+      message: 'Do you want to use clerk? (Yes/No)',
+      initial: false
+    },
+    {
+      type: 'confirm',
+      name: 'useConvex',
+      message: 'Do you want to use convex? (Yes/No)',
+      initial: false
+    },
+    {
+      type: 'confirm',
+      name: 'useEmail',
+      message: 'Do you want to setup email? (Yes/No) — installs react-hook-form, react-email, resend',
+      initial: true
+    }
+  ],
+  { stdout: process.stdout }
+)
+
+if (!followUps) {
+  console.log('\n❌ Follow-up prompts were cancelled. Skipping extra setup.')
   process.exit(0)
 }
 
-const { projectName, useBun, useShadcn, useEmail } = response
+const { useShadcn, useClerk, useConvex, useEmail } = followUps
 
-fs.mkdirSync(projectName)
-process.chdir(projectName)
-
-execSync(`npx create-next-app@latest web`, { stdio: 'inherit' })
-
-process.chdir('web')
-
-console.log('\n✔ Installing react-icons and heroicons...')
-const iconsCmd = useBun
-  ? 'bun add react-icons @heroicons/react'
-  : 'npm install react-icons @heroicons/react'
-execSync(iconsCmd, { stdio: 'inherit' })
-
+// 4) Aggregate selected dependencies and install once
+const deps = []
 if (useShadcn) {
-  console.log('\n✔ Installing shadcn/ui...')
-  const shadcnCmd = useBun
-    ? 'bun add shadcn-ui clsx tailwind-variants'
-    : 'npm install shadcn-ui clsx tailwind-variants'
-  execSync(shadcnCmd, { stdio: 'inherit' })
-
-  console.log('✔ Initializing shadcn/ui...')
-  execSync('npx shadcn-ui@latest init', { stdio: 'inherit' })
+  deps.push('class-variance-authority', 'clsx', 'tailwindcss-animate')
 }
-
+if (useClerk) {
+  deps.push('@clerk/nextjs')
+}
+if (useConvex) {
+  deps.push('convex')
+}
 if (useEmail) {
-  console.log('\n✔ Installing React Email + Resend...')
-  const emailCmd = useBun
-    ? 'bun add @react-email/components @react-email/render resend'
-    : 'npm install @react-email/components @react-email/render resend'
-  execSync(emailCmd, { stdio: 'inherit' })
-
-  const emailDir = path.join('emails')
-  if (!fs.existsSync(emailDir)) fs.mkdirSync(emailDir)
-
-  fs.writeFileSync(
-    path.join(emailDir, 'WelcomeEmail.tsx'),
-    `import { Html, Head, Preview, Body, Text, Container } from '@react-email/components'
-
-export function WelcomeEmail() {
-  return (
-    <Html>
-      <Head />
-      <Preview>Welcome to your new app!</Preview>
-      <Body style={{ fontFamily: 'sans-serif' }}>
-        <Container>
-          <Text>Hey there 👋</Text>
-          <Text>Thanks for trying out your new Next.js app with email support!</Text>
-        </Container>
-      </Body>
-    </Html>
-  )
-}`
-  )
+  deps.push('react-hook-form', '@react-email/components', '@react-email/render', 'resend')
 }
 
-console.log('\n✅ Done! Your Ekko app is ready.')
-console.log(`\n👉 To get started:`)
-console.log(`  cd ${projectName}/web`)
-console.log(`  ${useBun ? 'bun dev' : 'npm run dev'}`)
-
-if (useEmail) {
-  console.log('\n📬 Your first email is located at:')
-  console.log(`  ${projectName}/web/emails/WelcomeEmail.tsx`)
+if (deps.length > 0) {
+  console.log('\n📦 Installing selected dependencies with pnpm...')
+  run(`pnpm add ${deps.join(' ')}`)
 }
 
-console.log('\n🧠 Don't forget to set your Resend API key in your .env file to send email.\n')
+// 5) Post-install setup steps that are not simple deps
+if (useShadcn) {
+  try {
+    console.log('\n✨ Initializing shadcn (this may update Tailwind config and add components)...')
+    // Using the official shadcn CLI
+    run('pnpm dlx shadcn@latest init -y')
+  } catch (e) {
+    console.log('\n⚠️  shadcn init failed. You can run it later with: pnpm dlx shadcn@latest init')
+  }
+}
+
+// 6) Try to open the project in VS Code
+try {
+  execSync('code .', { stdio: 'ignore' })
+  console.log('\n🧰 Opened in VS Code (code .).')
+} catch (e) {
+  console.log('\nℹ️  VS Code command-line tool not found. To open the project, run:')
+  console.log(`   cd ${projectName} && code .`)
+}
+
+console.log('\n✅ Done! Your app is ready.')
+console.log('\nNext steps:')
+console.log(`  cd ${projectName}`)
+console.log('  pnpm dev')
