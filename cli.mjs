@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+nstall #!/usr/bin/env node
 
 import prompts from 'prompts';
 import { execSync } from 'child_process';
@@ -90,7 +90,7 @@ const { useShadcn, shadcnColor, useClerk, useConvex, useEmail } = followUps;
 
 // 2) Show what will be installed
 console.log('\n📋 Summary of selections:');
-if (useShadcn) console.log(`  ✓ shadcn/ui (${shadcnColor} theme)`);
+if (useShadcn) console.log(`  ✓ shadcn/ui with all components (${shadcnColor} theme)`);
 if (useClerk) console.log('  ✓ Clerk authentication');
 if (useConvex) console.log('  ✓ Convex database');
 if (useEmail) console.log('  ✓ Email services (react-hook-form, react-email, resend)');
@@ -105,7 +105,7 @@ process.chdir(projectName);
 // 5) Install all dependencies first
 const deps = [];
 if (useShadcn) {
-  deps.push('class-variance-authority', 'clsx', 'tailwindcss-animate');
+  deps.push('class-variance-authority', 'clsx', 'tailwindcss-animate', 'lucide-react', 'tailwind-merge');
 }
 if (useClerk) {
   deps.push('@clerk/nextjs');
@@ -125,11 +125,19 @@ if (deps.length > 0) {
 // 6) Run post-install setup steps
 if (useShadcn) {
   try {
-    console.log(`\n✨ Initializing shadcn with ${shadcnColor} theme (this may update Tailwind config and add components)...`);
+    console.log(
+      `\n✨ Initializing shadcn with ${shadcnColor} theme (this may update Tailwind config and add components)...`
+    );
     // Using the official shadcn CLI with the selected color
     run(`pnpm dlx shadcn@latest init -y --base-color ${shadcnColor}`);
+    
+    console.log('\n🎨 Installing all available shadcn components...');
+    // Add all available shadcn components
+    run(`pnpm dlx shadcn@latest add --all -y`);
   } catch (e) {
-    console.log('\n⚠️  shadcn init failed. You can run it later with: pnpm dlx shadcn@latest init');
+    console.log('\n⚠️  shadcn setup failed. You can run it later with:');
+    console.log('   pnpm dlx shadcn@latest init');
+    console.log('   pnpm dlx shadcn@latest add --all');
   }
 }
 
