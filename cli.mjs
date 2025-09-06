@@ -40,28 +40,44 @@ process.chdir(projectName)
 const followUps = await prompts(
   [
     {
-      type: 'confirm',
+      type: 'select',
       name: 'useShadcn',
-      message: 'Do you want to use shadcn? (Yes/No)',
-      initial: true
+      message: 'Would you like to use shadcn?',
+      choices: [
+        { title: 'Yes', value: true },
+        { title: 'No', value: false }
+      ],
+      initial: 0
     },
     {
-      type: 'confirm',
+      type: 'select',
       name: 'useClerk',
-      message: 'Do you want to use clerk? (Yes/No)',
-      initial: false
+      message: 'Would you like to use clerk?',
+      choices: [
+        { title: 'Yes', value: true },
+        { title: 'No', value: false }
+      ],
+      initial: 1
     },
     {
-      type: 'confirm',
+      type: 'select',
       name: 'useConvex',
-      message: 'Do you want to use convex? (Yes/No)',
-      initial: false
+      message: 'Would you like to use convex?',
+      choices: [
+        { title: 'Yes', value: true },
+        { title: 'No', value: false }
+      ],
+      initial: 1
     },
     {
-      type: 'confirm',
+      type: 'select',
       name: 'useEmail',
-      message: 'Do you want to setup email? (Yes/No) — installs react-hook-form, react-email, resend',
-      initial: true
+      message: 'Would you like to install email services?',
+      choices: [
+        { title: 'Yes', value: true },
+        { title: 'No', value: false }
+      ],
+      initial: 0
     }
   ],
   { stdout: process.stdout }
@@ -74,7 +90,14 @@ if (!followUps) {
 
 const { useShadcn, useClerk, useConvex, useEmail } = followUps
 
-// 4) Aggregate selected dependencies and install once
+// 4) Show what will be installed
+console.log('\n📋 Summary of selections:')
+if (useShadcn) console.log('  ✓ shadcn/ui')
+if (useClerk) console.log('  ✓ Clerk authentication')
+if (useConvex) console.log('  ✓ Convex database')
+if (useEmail) console.log('  ✓ Email services (react-hook-form, react-email, resend)')
+
+// 5) Install all dependencies first
 const deps = []
 if (useShadcn) {
   deps.push('class-variance-authority', 'clsx', 'tailwindcss-animate')
@@ -94,7 +117,7 @@ if (deps.length > 0) {
   run(`pnpm add ${deps.join(' ')}`)
 }
 
-// 5) Post-install setup steps that are not simple deps
+// 6) Run post-install setup steps
 if (useShadcn) {
   try {
     console.log('\n✨ Initializing shadcn (this may update Tailwind config and add components)...')
@@ -105,7 +128,7 @@ if (useShadcn) {
   }
 }
 
-// 6) Try to open the project in VS Code
+// 7) Try to open the project in VS Code
 try {
   execSync('code .', { stdio: 'ignore' })
   console.log('\n🧰 Opened in VS Code (code .).')
