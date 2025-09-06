@@ -21,7 +21,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Check package info
+        run: |
+          echo "Package name: $(npm pkg get name)"
+          echo "Package version: $(npm pkg get version)"
+          echo "Checking if version exists on npm..."
+          npm view $(npm pkg get name --json | tr -d '"')@$(npm pkg get version --json | tr -d '"') version || echo "Version does not exist on npm (this is good)"
+
       - name: Publish package
-        run: npm publish
+        run: npm publish --verbose
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
