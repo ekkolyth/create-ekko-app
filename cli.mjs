@@ -41,6 +41,19 @@ const followUps = await prompts(
       inactive: 'No',
     },
     {
+      type: 'select',
+      name: 'shadcnColor',
+      message: 'What base color would you like for shadcn?',
+      choices: [
+        { title: 'Neutral', value: 'neutral' },
+        { title: 'Gray', value: 'gray' },
+        { title: 'Zinc', value: 'zinc' },
+        { title: 'Stone', value: 'stone' },
+        { title: 'Slate', value: 'slate' },
+      ],
+      initial: 0,
+    },
+    {
       type: 'toggle',
       name: 'useClerk',
       message: 'Would you like to use clerk?',
@@ -73,11 +86,11 @@ if (!followUps) {
   process.exit(0);
 }
 
-const { useShadcn, useClerk, useConvex, useEmail } = followUps;
+const { useShadcn, shadcnColor, useClerk, useConvex, useEmail } = followUps;
 
 // 2) Show what will be installed
 console.log('\n📋 Summary of selections:');
-if (useShadcn) console.log('  ✓ shadcn/ui');
+if (useShadcn) console.log(`  ✓ shadcn/ui (${shadcnColor} theme)`);
 if (useClerk) console.log('  ✓ Clerk authentication');
 if (useConvex) console.log('  ✓ Convex database');
 if (useEmail) console.log('  ✓ Email services (react-hook-form, react-email, resend)');
@@ -112,9 +125,9 @@ if (deps.length > 0) {
 // 6) Run post-install setup steps
 if (useShadcn) {
   try {
-    console.log('\n✨ Initializing shadcn (this may update Tailwind config and add components)...');
-    // Using the official shadcn CLI
-    run('pnpm dlx shadcn@latest init -y');
+    console.log(`\n✨ Initializing shadcn with ${shadcnColor} theme (this may update Tailwind config and add components)...`);
+    // Using the official shadcn CLI with the selected color
+    run(`pnpm dlx shadcn@latest init -y --base-color ${shadcnColor}`);
   } catch (e) {
     console.log('\n⚠️  shadcn init failed. You can run it later with: pnpm dlx shadcn@latest init');
   }
