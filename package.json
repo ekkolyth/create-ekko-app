@@ -1,6 +1,6 @@
 {
   "name": "create-ekko-app",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Custom Next.js starter CLI with Shadcn, Resend, Bun, and more.",
   "type": "module",
   "bin": {
