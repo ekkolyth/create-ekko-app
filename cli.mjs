@@ -1,4 +1,4 @@
-nstall #!/usr/bin/env node
+#!/usr/bin/env node
 
 import prompts from 'prompts';
 import { execSync } from 'child_process';
