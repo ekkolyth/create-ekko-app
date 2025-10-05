@@ -18,7 +18,7 @@ function run(cmd: string, options: { silent?: boolean } = {}) {
   }
 }
 
-type Framework = "next" | "ts-router";
+type Framework = "next" | "tanstack-start";
 type AuthChoice = "clerk" | "better-auth" | "none";
 type DatabaseChoice = "convex" | "drizzle" | "none";
 
@@ -52,7 +52,7 @@ async function main(projectNameArg?: string): Promise<void> {
     message: "Choose your Framework",
     options: [
       { name: "Next JS", value: "next" },
-      { name: "TS-Router", value: "ts-router" },
+      { name: "TanStack Start", value: "tanstack-start" },
     ],
     default: "next",
   })) as Framework;
@@ -113,7 +113,9 @@ async function main(projectNameArg?: string): Promise<void> {
 
   // STEP 3: Summary
   console.log("\n📋 Summary of selections:");
-  console.log(`  Framework: ${framework === "next" ? "Next JS" : "TS-Router"}`);
+  console.log(
+    `  Framework: ${framework === "next" ? "Next JS" : "TanStack Start"}`,
+  );
   if (authChoice !== "none") console.log(`  ✓ ${authChoice === "clerk" ? "Clerk" : "Better Auth"}`);
   if (dbChoice !== "none") console.log(`  ✓ ${dbChoice === "convex" ? "Convex" : "Drizzle"}`);
   if (useShadcn) console.log(`  ✓ shadcn/ui with all components (${shadcnColor} theme)`);
@@ -122,17 +124,16 @@ async function main(projectNameArg?: string): Promise<void> {
   if (useTanstackQuery) console.log("  ✓ Tanstack Query");
   if (useTanstackForm) console.log("  ✓ Tanstack Form");
 
-  // Only Next.js is currently supported for scaffolding
-  if (framework !== "next") {
-    console.log("\n❌ TS-Router scaffolding is not supported yet.");
-    Deno.exit(0);
+  // STEP 4: Scaffold selected framework
+  if (framework === "next") {
+    console.log("\n⚙️  Creating Next.js app...");
+    run(
+      `pnpm dlx create-next-app@latest ${projectName} --app --ts --tailwind --eslint --turbopack --src-dir --use-pnpm --import-alias @/*`,
+    );
+  } else {
+    console.log("\n⚙️  Creating TanStack Start app...");
+    run(`pnpm create @tanstack/start@latest ${projectName}`);
   }
-
-  // STEP 4: Create the Next.js application
-  console.log("\n⚙️  Creating Next.js app...");
-  run(
-    `pnpm dlx create-next-app@latest ${projectName} --app --ts --tailwind --eslint --turbopack --src-dir --use-pnpm --import-alias @/*`,
-  );
 
   // STEP 5: Change to project directory
   Deno.chdir(projectName);
@@ -152,7 +153,9 @@ async function main(projectNameArg?: string): Promise<void> {
   }
 
   // Auth
-  if (authChoice === "clerk") deps.push("@clerk/nextjs");
+  if (authChoice === "clerk") {
+    deps.push(framework === "next" ? "@clerk/nextjs" : "@clerk/clerk-react");
+  }
   if (authChoice === "better-auth") deps.push("better-auth");
 
   // DB
@@ -173,7 +176,7 @@ async function main(projectNameArg?: string): Promise<void> {
   }
 
   // STEP 7: Post-install setup
-  if (useShadcn) {
+  if (useShadcn && framework === "next") {
     try {
       console.log(`\n✨ Initializing shadcn with ${shadcnColor} theme...`);
       run(`pnpm dlx shadcn@latest init -y --base-color ${shadcnColor}`);
@@ -185,6 +188,8 @@ async function main(projectNameArg?: string): Promise<void> {
       console.log("   pnpm dlx shadcn@latest init");
       console.log("   pnpm dlx shadcn@latest add --all");
     }
+  } else if (useShadcn) {
+    console.log("\nℹ️  shadcn automation currently targets Next.js. Skipping for TanStack Start.");
   }
 
   // STEP 8: Open project in VS Code (optional)
