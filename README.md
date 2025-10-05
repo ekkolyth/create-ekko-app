@@ -17,24 +17,6 @@ deno install -A -n create-ekko-app jsr:@mikekenway/create-ekko-app
 create-ekko-app my-app
 ```
 
-### Legacy NPM Usage (if published to npm)
-
-```bash
-pnpm dlx create-ekko-app@latest my-app
-```
-
-This will:
-- Ask all the normal Next.js questions
-- Then ask: shadcn? clerk? convex? email?
-- Install the selected extras
-- Open the new project in VS Code
-
-If you prefer to type the name later, just run:
-
-```bash
-deno run -A jsr:@mikekenway/create-ekko-app
-```
-
 ## Development
 
 ### Running locally
@@ -47,6 +29,13 @@ deno task dev
 
 ```bash
 deno task build
+```
+
+### Reminder to myself for pushing new versions
+```bash
+npm version patch
+git push origin main
+git push origin --tags
 ```
 
 This will create a compiled binary in `./build/create-ekko-app`
