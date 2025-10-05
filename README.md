@@ -1,12 +1,6 @@
 # create-ekko-app
 
-Opinionated wrapper around `create-next-app` that asks a few extra questions and installs your preferred stack in one go.
-
-- ✅ Runs `create-next-app@latest` interactively
-- ✅ Optional add-ons with one install: **shadcn**, **Clerk**, **Convex**, **Email (react-hook-form, react-email, resend)**
-- ✅ Installs all selected deps in one `pnpm add`
-- ✅ Opens the project in VS Code (`code .`) when finished
-- ✅ **Built with Deno** for modern JavaScript runtime support
+Opinionated wrapper around `create-next-app` that installs your preferred stack in one go.
 
 ## Usage
 

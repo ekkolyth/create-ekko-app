@@ -69,7 +69,7 @@ let useTanstackForm: boolean;
 
 try {
   const selectedPackages: string[] = await Checkbox.prompt({
-    message: "Select Which Packages you'd like to use:",
+    message: "Select [Space Bar] which packages you'd like to use:",
     options: [
       { name: "Auth: Clerk", value: "clerk" },
       { name: "Auth: Better Auth", value: "better-auth" },
@@ -82,6 +82,7 @@ try {
       { name: "Styling: shadcn/ui", value: "shadcn" },
     ],
     default: [],
+    confirmSubmit: false,
   });
 
   // Marry Variables to User Selection
