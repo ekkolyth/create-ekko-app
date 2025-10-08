@@ -33,9 +33,13 @@ deno task build
 
 ### Reminder to myself for pushing new versions
 ```bash
-npm version patch
+git add deno.json
+git commit -m "Bump version to 1.1.xx"
+git tag v1.1.x
 git push origin main
 git push origin --tags
+deno publish
+
 ```
 
 This will create a compiled binary in `./build/create-ekko-app`
