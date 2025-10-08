@@ -1,34 +1,66 @@
-name: Publish to npm
+name: Publish to JSR and npm
 
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
-  release:
+  publish-jsr:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Use Node.js
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - name: Verify Deno installation
+        run: deno --version
+
+      - name: Check types and lint
+        run: deno check cli.ts
+
+      - name: Publish to JSR
+        run: deno publish
+
+  publish-npm:
+    runs-on: ubuntu-latest
+    needs: publish-jsr
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          registry-url: 'https://registry.npmjs.org/'
+          registry-url: "https://registry.npmjs.org/"
 
-      - name: Install dependencies
-        run: npm install
+      - name: Generate package.json from deno.json
+        run: deno task sync-package
+
+      - name: Build CLI for npm
+        run: |
+          # Compile the CLI to a JavaScript executable
+          deno compile --allow-all --target x86_64-unknown-linux-gnu --output ./cli cli.ts
+          chmod +x ./cli
 
       - name: Check package info
         run: |
-          echo "Package name: $(npm pkg get name)"
-          echo "Package version: $(npm pkg get version)"
+          echo "Package name: $(node -p "require('./package.json').name")"
+          echo "Package version: $(node -p "require('./package.json').version")"
           echo "Checking if version exists on npm..."
-          npm view $(npm pkg get name --json | tr -d '"')@$(npm pkg get version --json | tr -d '"') version || echo "Version does not exist on npm (this is good)"
+          npm view $(node -p "require('./package.json').name")@$(node -p "require('./package.json').version") version || echo "Version does not exist on npm (this is good)"
 
-      - name: Publish package
+      - name: Publish to npm
         run: npm publish --verbose
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
