@@ -27,21 +27,21 @@ Deno.writeTextFileSync(denoConfigPath, JSON.stringify(denoConfig, null, 2));
 
 console.log("✅ Updated deno.json");
 
-// Build JavaScript file for npm
-console.log("🔄 Building cli.mjs for npm...");
+// Build native binary for npm
+console.log("🔄 Building native binary for npm...");
 const buildResult = await new Deno.Command("deno", {
   args: ["task", "build:npm"],
 }).output();
 
 if (!buildResult.success) {
-  console.error("❌ Failed to build cli.mjs");
+  console.error("❌ Failed to build native binary");
   Deno.exit(1);
 }
 
 // Git operations
 console.log("📝 Committing changes...");
 await new Deno.Command("git", {
-  args: ["add", "deno.json", "cli.mjs"],
+  args: ["add", "deno.json", "bin/create-ekko-app"],
 }).output();
 await new Deno.Command("git", {
   args: ["commit", "-m", `Bump version to ${newVersion}`],
@@ -55,7 +55,7 @@ console.log("🚀 Pushing to GitHub...");
 await new Deno.Command("git", { args: ["push", "origin", "main"] }).output();
 await new Deno.Command("git", { args: ["push", "origin", "--tags"] }).output();
 
-console.log("📦 cli.mjs generated for npm");
+console.log("📦 Native binary generated for npm");
 console.log("🚀 GitHub Actions will now publish to both JSR and npm!");
 console.log(`🎉 Version ${newVersion} ready for release!`);
 console.log("\n💡 To test locally, run: npm pack");
