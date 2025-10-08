@@ -116,9 +116,15 @@ async function main(projectNameArg?: string): Promise<void> {
   console.log(
     `  Framework: ${framework === "next" ? "Next JS" : "TanStack Start"}`,
   );
-  if (authChoice !== "none") console.log(`  ✓ ${authChoice === "clerk" ? "Clerk" : "Better Auth"}`);
-  if (dbChoice !== "none") console.log(`  ✓ ${dbChoice === "convex" ? "Convex" : "Drizzle"}`);
-  if (useShadcn) console.log(`  ✓ shadcn/ui with all components (${shadcnColor} theme)`);
+  if (authChoice !== "none") {
+    console.log(`  ✓ ${authChoice === "clerk" ? "Clerk" : "Better Auth"}`);
+  }
+  if (dbChoice !== "none") {
+    console.log(`  ✓ ${dbChoice === "convex" ? "Convex" : "Drizzle"}`);
+  }
+  if (useShadcn) {
+    console.log(`  ✓ shadcn/ui with all components (${shadcnColor} theme)`);
+  }
   if (useReactEmail) console.log("  ✓ React Email");
   if (useResend) console.log("  ✓ Resend");
   if (useTanstackQuery) console.log("  ✓ Tanstack Query");
@@ -163,7 +169,9 @@ async function main(projectNameArg?: string): Promise<void> {
   if (dbChoice === "drizzle") deps.push("drizzle-orm");
 
   // Email stacks
-  if (useReactEmail) deps.push("@react-email/components", "@react-email/render");
+  if (useReactEmail) {
+    deps.push("@react-email/components", "@react-email/render");
+  }
   if (useResend) deps.push("resend");
 
   // Tools
@@ -189,7 +197,9 @@ async function main(projectNameArg?: string): Promise<void> {
       console.log("   pnpm dlx shadcn@latest add --all");
     }
   } else if (useShadcn) {
-    console.log("\nℹ️  shadcn automation currently targets Next.js. Skipping for TanStack Start.");
+    console.log(
+      "\nℹ️  shadcn automation currently targets Next.js. Skipping for TanStack Start.",
+    );
   }
 
   // STEP 8: Open project in VS Code (optional)
