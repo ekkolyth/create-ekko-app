@@ -7,9 +7,9 @@ const packageJson = {
   version: denoConfig.version,
   description: denoConfig.description,
   license: denoConfig.license,
-  main: "cli.js",
+  main: "cli",
   bin: {
-    "create-ekko-app": "./cli.js",
+    "create-ekko-app": "./cli",
   },
   scripts: {
     build: "deno compile --allow-all --output ./build/create-ekko-app cli.ts",
