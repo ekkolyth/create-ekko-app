@@ -31,11 +31,7 @@ jobs:
       - name: Generate package.json from deno.json
         run: deno task sync-package
 
-      - name: Build CLI for npm
-        run: |
-          # Compile the CLI to a JavaScript executable - skip type checking
-          deno compile --allow-all --no-check --target x86_64-unknown-linux-gnu --output ./cli cli.ts
-          chmod +x ./cli
+      # No compilation needed - ship TypeScript source directly
 
       - name: Check package info
         run: |
