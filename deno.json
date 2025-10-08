@@ -8,6 +8,7 @@
     "build": "deno compile --allow-all --output ./build/create-ekko-app cli.ts"
   },
   "imports": {
+    "@cliffy/command": "jsr:@cliffy/command@^1.0.0-rc.8",
     "@cliffy/prompt": "jsr:@cliffy/prompt@^1.0.0-rc.5",
     "@std/path": "jsr:@std/path@^1.0.8"
   },
