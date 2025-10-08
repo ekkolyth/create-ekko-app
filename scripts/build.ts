@@ -2,7 +2,7 @@
 
 import { bundle } from "jsr:@deno/emit@0.46.0";
 
-console.log("🔨 Bundling cli.ts to cli.js for npm...");
+console.log("🔨 Bundling cli.ts to cli.mjs for npm...");
 
 // Read import map from deno.json
 const denoConfig = JSON.parse(await Deno.readTextFile("deno.json"));

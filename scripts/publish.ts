@@ -28,13 +28,13 @@ Deno.writeTextFileSync(denoConfigPath, JSON.stringify(denoConfig, null, 2));
 console.log("✅ Updated deno.json");
 
 // Build JavaScript file for npm
-console.log("🔄 Building cli.js for npm...");
+console.log("🔄 Building cli.mjs for npm...");
 const buildResult = await new Deno.Command("deno", {
   args: ["task", "build:npm"],
 }).output();
 
 if (!buildResult.success) {
-  console.error("❌ Failed to build cli.js");
+  console.error("❌ Failed to build cli.mjs");
   Deno.exit(1);
 }
 
