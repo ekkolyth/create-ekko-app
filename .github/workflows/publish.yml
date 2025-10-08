@@ -21,7 +21,7 @@ jobs:
         run: rm -f deno.lock
 
       - name: Publish to JSR
-        run: deno publish --no-check --token $JSR_TOKEN
+        run: deno publish --no-check --allow-dirty --token $JSR_TOKEN
         env:
           JSR_TOKEN: ${{ secrets.JSR_TOKEN }}
 

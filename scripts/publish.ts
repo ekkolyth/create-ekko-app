@@ -57,6 +57,3 @@ await new Deno.Command("git", { args: ["push", "origin", "--tags"] }).output();
 
 console.log("🚀 GitHub Actions will now publish to both JSR and npm!");
 console.log(`🎉 Version ${newVersion} ready for release!`);
-console.log(`   - JSR: Will be published by GitHub Actions`);
-console.log(`   - npm: Will be published by GitHub Actions`);
-console.log(`\nNext: Run 'deno publish' to complete the JSR publish`);
