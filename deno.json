@@ -15,11 +15,10 @@
     "@cliffy/prompt": "jsr:@cliffy/prompt@^1.0.0-rc.5",
     "@std/path": "jsr:@std/path@^1.0.8"
   },
+  "compilerOptions": {
+    "types": ["npm:@types/node"]
+  },
   "publish": {
-    "exclude": [
-      "build/",
-      "*.tgz",
-      "node_modules/"
-    ]
+    "exclude": ["build/", "*.tgz", "node_modules/"]
   }
 }

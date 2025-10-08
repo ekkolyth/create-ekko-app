@@ -31,6 +31,9 @@ jobs:
       - name: Generate package.json from deno.json
         run: deno task sync-package
 
+      - name: Install Node types for Deno
+        run: deno cache npm:@types/node
+
       - name: Build CLI for npm
         run: |
           # Compile the CLI to a JavaScript executable
