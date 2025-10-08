@@ -27,21 +27,21 @@ Deno.writeTextFileSync(denoConfigPath, JSON.stringify(denoConfig, null, 2));
 
 console.log("✅ Updated deno.json");
 
-// Generate package.json for npm
-console.log("🔄 Generating package.json...");
-const syncResult = await new Deno.Command("deno", {
-  args: ["task", "sync-package"],
+// Build JavaScript file for npm
+console.log("🔄 Building cli.js for npm...");
+const buildResult = await new Deno.Command("deno", {
+  args: ["task", "build:npm"],
 }).output();
 
-if (!syncResult.success) {
-  console.error("❌ Failed to sync package.json");
+if (!buildResult.success) {
+  console.error("❌ Failed to build cli.js");
   Deno.exit(1);
 }
 
 // Git operations
 console.log("📝 Committing changes...");
 await new Deno.Command("git", {
-  args: ["add", "deno.json", "package.json"],
+  args: ["add", "deno.json", "cli.mjs"],
 }).output();
 await new Deno.Command("git", {
   args: ["commit", "-m", `Bump version to ${newVersion}`],
@@ -55,5 +55,7 @@ console.log("🚀 Pushing to GitHub...");
 await new Deno.Command("git", { args: ["push", "origin", "main"] }).output();
 await new Deno.Command("git", { args: ["push", "origin", "--tags"] }).output();
 
+console.log("📦 cli.mjs generated for npm");
 console.log("🚀 GitHub Actions will now publish to both JSR and npm!");
 console.log(`🎉 Version ${newVersion} ready for release!`);
+console.log("\n💡 To test locally, run: npm pack");

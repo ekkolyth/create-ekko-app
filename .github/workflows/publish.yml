@@ -53,9 +53,8 @@ jobs:
 
       - name: Generate JavaScript from TypeScript
         run: |
-          # Create JavaScript version with Node.js shebang
-          sed 's|#!/usr/bin/env -S deno run --allow-all|#!/usr/bin/env node|' cli.ts > cli.js
-          chmod +x cli.js
+          # Use our proper build process to generate cli.mjs
+          deno task build:npm
 
       - name: Check package info
         run: |

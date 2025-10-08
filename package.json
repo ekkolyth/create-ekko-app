@@ -3,9 +3,9 @@
   "version": "1.1.19",
   "description": "Custom React Framework Starter ",
   "license": "MIT",
-  "main": "cli.js",
+  "main": "cli.mjs",
   "bin": {
-    "create-ekko-app": "./cli.js"
+    "create-ekko-app": "./cli.mjs"
   },
   "scripts": {
     "build": "deno compile --allow-all --output ./build/create-ekko-app cli.ts"
