@@ -6,7 +6,8 @@
   "exports": "./cli.ts",
   "tasks": {
     "dev": "deno run --allow-all cli.ts",
-    "build": "deno compile --allow-all --output ./build/create-ekko-app cli.ts"
+    "build": "deno compile --allow-all --output ./build/create-ekko-app cli.ts",
+    "sync-package": "deno run --allow-read --allow-write scripts/sync-package.ts"
   },
   "imports": {
     "@cliffy/command": "jsr:@cliffy/command@^1.0.0-rc.8",
