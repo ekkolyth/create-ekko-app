@@ -3,7 +3,7 @@
 const denoConfig = JSON.parse(Deno.readTextFileSync("deno.json"));
 
 const packageJson = {
-  name: denoConfig.name,
+  name: denoConfig.name.replace("@mikekenway/", ""),
   version: denoConfig.version,
   description: denoConfig.description,
   license: denoConfig.license,
