@@ -1,6 +1,6 @@
 {
   "name": "@mikekenway/create-ekko-app",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "description": "Custom React Framework Starter ",
   "license": "MIT",
   "exports": "./cli.ts",
@@ -16,9 +16,15 @@
     "@std/path": "jsr:@std/path@^1.0.8"
   },
   "compilerOptions": {
-    "types": ["npm:@types/node"]
+    "types": [
+      "npm:@types/node"
+    ]
   },
   "publish": {
-    "exclude": ["build/", "*.tgz", "node_modules/"]
+    "exclude": [
+      "build/",
+      "*.tgz",
+      "node_modules/"
+    ]
   }
 }
