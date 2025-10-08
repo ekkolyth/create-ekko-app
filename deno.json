@@ -1,12 +1,13 @@
 {
   "name": "@mikekenway/create-ekko-app",
-  "version": "1.1.19",
+  "version": "1.1.20",
   "description": "Custom React Framework Starter ",
   "license": "MIT",
   "exports": "./cli.ts",
   "tasks": {
     "dev": "deno run --allow-all cli.ts",
     "build": "deno compile --allow-all --output ./build/create-ekko-app cli.ts",
+    "build:npm": "deno run --allow-all scripts/build.ts",
     "sync-package": "deno run --allow-read --allow-write --no-check scripts/sync-package.ts",
     "publish": "deno run --allow-all scripts/publish.ts"
   },
