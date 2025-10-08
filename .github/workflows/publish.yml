@@ -1,13 +1,33 @@
-name: Publish to npm
+name: Publish to JSR and npm
 
 on:
-  registry_package:
-    types: [published]
-  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
 
 jobs:
+  publish-jsr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: "2.0.6"
+
+      - name: Remove lockfile compatibility issues
+        run: rm -f deno.lock
+
+      - name: Publish to JSR
+        run: deno publish
+        env:
+          JSR_TOKEN: ${{ secrets.JSR_TOKEN }}
+
   publish-npm:
     runs-on: ubuntu-latest
+    needs: publish-jsr
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
