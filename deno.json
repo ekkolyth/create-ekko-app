@@ -1,6 +1,6 @@
 {
   "name": "@mikekenway/create-ekko-app",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "description": "Custom React Framework Starter ",
   "license": "MIT",
   "exports": "./cli.ts",
