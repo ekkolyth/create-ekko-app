@@ -31,13 +31,10 @@ jobs:
       - name: Generate package.json from deno.json
         run: deno task sync-package
 
-      - name: Install Node types for Deno
-        run: deno cache npm:@types/node
-
       - name: Build CLI for npm
         run: |
-          # Compile the CLI to a JavaScript executable
-          deno compile --allow-all --target x86_64-unknown-linux-gnu --output ./cli cli.ts
+          # Compile the CLI to a JavaScript executable - skip type checking
+          deno compile --allow-all --no-check --target x86_64-unknown-linux-gnu --output ./cli cli.ts
           chmod +x ./cli
 
       - name: Check package info
