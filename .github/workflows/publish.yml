@@ -1,9 +1,9 @@
 name: Publish to npm
 
 on:
-  push:
-    tags:
-      - "v*"
+  registry_package:
+    types: [published]
+  workflow_dispatch:
 
 jobs:
   publish-npm:
@@ -31,7 +31,11 @@ jobs:
       - name: Generate package.json from deno.json
         run: deno task sync-package
 
-      # No compilation needed - ship TypeScript source directly
+      - name: Generate JavaScript from TypeScript
+        run: |
+          # Create JavaScript version with Node.js shebang
+          sed 's|#!/usr/bin/env -S deno run --allow-all|#!/usr/bin/env node|' cli.ts > cli.js
+          chmod +x cli.js
 
       - name: Check package info
         run: |

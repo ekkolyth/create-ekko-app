@@ -7,8 +7,7 @@
   "tasks": {
     "dev": "deno run --allow-all cli.ts",
     "build": "deno compile --allow-all --output ./build/create-ekko-app cli.ts",
-    "sync-package": "deno run --allow-read --allow-write --no-check scripts/sync-package.ts",
-    "publish": "deno run --allow-all scripts/publish.ts"
+    "sync-package": "deno run --allow-read --allow-write --no-check scripts/sync-package.ts"
   },
   "imports": {
     "@cliffy/command": "jsr:@cliffy/command@^1.0.0-rc.8",
@@ -16,10 +15,6 @@
     "@std/path": "jsr:@std/path@^1.0.8"
   },
   "publish": {
-    "exclude": [
-      "build/",
-      "*.tgz",
-      "node_modules/"
-    ]
+    "exclude": ["build/", "*.tgz", "node_modules/"]
   }
 }
