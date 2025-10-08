@@ -15,13 +15,18 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: v1.x
+          deno-version: "2.0.6"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: "https://registry.npmjs.org/"
+
+      - name: Handle lockfile compatibility
+        run: |
+          # Remove lockfile if it exists to avoid version conflicts
+          rm -f deno.lock
 
       - name: Generate package.json from deno.json
         run: deno task sync-package
