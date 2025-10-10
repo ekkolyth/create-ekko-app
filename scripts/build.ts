@@ -48,4 +48,4 @@ await Deno.chmod("bin/create-ekko-app", 0o755);
 
 console.log("✅ Generated native binaries for all platforms");
 console.log("✅ Created platform detection wrapper");
-console.log("📦 Ready to publish to npm!");
+console.log("Ready to publish to npm!");

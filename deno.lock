@@ -13,6 +13,7 @@
     "jsr:@std/assert@0.223": "0.223.0",
     "jsr:@std/assert@~1.0.6": "1.0.14",
     "jsr:@std/bytes@0.223": "0.223.0",
+    "jsr:@std/cli@*": "1.0.23",
     "jsr:@std/encoding@~1.0.5": "1.0.10",
     "jsr:@std/fmt@0.223": "0.223.0",
     "jsr:@std/fmt@~1.0.2": "1.0.8",
@@ -100,6 +101,9 @@
     },
     "@std/bytes@0.223.0": {
       "integrity": "84b75052cd8680942c397c2631318772b295019098f40aac5c36cead4cba51a8"
+    },
+    "@std/cli@1.0.23": {
+      "integrity": "bf95b7a9425ba2af1ae5a6359daf58c508f2decf711a76ed2993cd352498ccca"
     },
     "@std/encoding@1.0.10": {
       "integrity": "8783c6384a2d13abd5e9e87a7ae0520a30e9f56aeeaa3bdf910a3eaaf5c811a1"
@@ -236,6 +240,7 @@
     "dependencies": [
       "jsr:@cliffy/command@^1.0.0-rc.8",
       "jsr:@cliffy/prompt@^1.0.0-rc.5",
+      "jsr:@std/cli@^1.0.6",
       "jsr:@std/path@^1.0.8"
     ]
   }
