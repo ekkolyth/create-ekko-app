@@ -23,17 +23,17 @@ jobs:
           node-version: 20
           registry-url: "https://registry.npmjs.org/"
 
+      # Remove Lockfile for Clean Start
       - name: Handle lockfile compatibility
         run: |
-          # Remove lockfile if it exists to avoid version conflicts
           rm -f deno.lock
 
       - name: Generate package.json from deno.json
         run: deno task sync-package
 
+        # Generate cli.mjs from TS
       - name: Generate JavaScript from TypeScript
         run: |
-          # Use our proper build process to generate cli.mjs
           deno task build:npm
 
       - name: Check package info

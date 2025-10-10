@@ -123,7 +123,7 @@ async function main(projectNameArg?: string): Promise<void> {
     console.log(`  ✓ ${dbChoice === "convex" ? "Convex" : "Drizzle"}`);
   }
   if (useShadcn) {
-    console.log(`  ✓ shadcn/ui with all components (${shadcnColor} theme)`);
+    console.log(`  ✓ shadcn in (${shadcnColor} theme)`);
   }
   if (useReactEmail) console.log("  ✓ React Email");
   if (useResend) console.log("  ✓ Resend");
@@ -132,12 +132,12 @@ async function main(projectNameArg?: string): Promise<void> {
 
   // STEP 4: Scaffold selected framework
   if (framework === "next") {
-    console.log("\n⚙️  Creating Next.js app...");
+    console.log("\nCreating Next.js app...");
     run(
       `pnpm dlx create-next-app@latest ${projectName} --app --ts --tailwind --eslint --turbopack --src-dir --use-pnpm --import-alias @/*`,
     );
   } else {
-    console.log("\n⚙️  Creating TanStack Start app...");
+    console.log("\n Creating TanStack Start app...");
     run(`pnpm create @tanstack/start@latest ${projectName}`);
   }
 
@@ -179,20 +179,20 @@ async function main(projectNameArg?: string): Promise<void> {
   if (useTanstackForm) deps.push("@tanstack/react-form");
 
   if (deps.length > 0) {
-    console.log("\n📦 Installing selected dependencies with pnpm...");
+    console.log("\n Installing selected dependencies with pnpm...");
     run(`pnpm add ${deps.join(" ")}`);
   }
 
   // STEP 7: Post-install setup
   if (useShadcn && framework === "next") {
     try {
-      console.log(`\n✨ Initializing shadcn with ${shadcnColor} theme...`);
+      console.log(`\n Initializing shadcn with ${shadcnColor} theme...`);
       run(`pnpm dlx shadcn@latest init -y --base-color ${shadcnColor}`);
 
-      console.log("\n🎨 Installing all available shadcn components...");
+      console.log("\n Installing all available shadcn components...");
       run(`pnpm dlx shadcn@latest add --all -y`);
     } catch (_e) {
-      console.log("\n⚠️  shadcn setup failed. You can run it later with:");
+      console.log("\n⚠️ shadcn setup failed. You can run it later with:");
       console.log("   pnpm dlx shadcn@latest init");
       console.log("   pnpm dlx shadcn@latest add --all");
     }
