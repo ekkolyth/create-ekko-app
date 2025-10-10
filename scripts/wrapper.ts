@@ -1,13 +1,13 @@
 #!/usr/bin/env node
-import * as os from "node:os";
-import * as path from "node:path";
-import { spawn } from "node:child_process";
-import process from "node:process";
+
+const os = require("os");
+const path = require("path");
+const { spawn } = require("child_process");
 
 const platform = os.platform();
 const arch = os.arch();
 
-const binaryMap: Record<string, string> = {
+const binaryMap: { [key: string]: string } = {
   "linux-x64": "create-ekko-app-linux",
   "win32-x64": "create-ekko-app-win.exe",
   "darwin-x64": "create-ekko-app-macos",
@@ -25,4 +25,6 @@ if (!binaryName) {
 const binaryPath = path.join(__dirname, binaryName);
 const child = spawn(binaryPath, process.argv.slice(2), { stdio: "inherit" });
 
-child.on("close", (code) => process.exit(code));
+child.on("close", (code: number) => {
+  process.exit(code);
+});

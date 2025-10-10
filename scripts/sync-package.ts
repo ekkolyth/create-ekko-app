@@ -12,6 +12,7 @@ const packageJson = {
     "create-ekko-app": "./bin/create-ekko-app",
   },
   files: [
+    "README.md",
     "bin/create-ekko-app",
     "bin/create-ekko-app-linux",
     "bin/create-ekko-app-win.exe",
