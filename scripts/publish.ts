@@ -14,6 +14,14 @@ const bumpFlags = [args.major, args.minor, args.patch].filter(Boolean);
 // Determine if we're doing a version bump
 const shouldBumpVersion = bumpFlags.length > 0;
 
+// If no bump flags provided, exit with error
+if (!shouldBumpVersion) {
+  console.error('❌ Error: No version bump type specified');
+  console.error('💡 Usage: deno task publish --patch (or --minor/--major)');
+  console.error('💡 To rebuild binary without version bump, use: deno task build:npm');
+  Deno.exit(1);
+}
+
 // Validate only one bump type is specified if bumping is requested
 if (bumpFlags.length > 1) {
   console.error('❌ Error: Only one version bump type can be specified');
@@ -75,7 +83,7 @@ if (shouldBumpVersion && bumpType) {
 }
 
 // Build native binary for npm
-console.log('🔄 Building native binary for npm...');
+console.log('Building native binary for npm...');
 const buildResult = await new Deno.Command('deno', {
   args: ['task', 'build:npm'],
 }).output();
@@ -85,28 +93,26 @@ if (!buildResult.success) {
   Deno.exit(1);
 }
 
-// Git operations (only if version was bumped)
-if (shouldBumpVersion && bumpType && newVersion) {
-  console.log('📝 Committing changes...');
-  await new Deno.Command('git', {
-    args: ['add', 'deno.json', 'bin/create-ekko-app'],
-  }).output();
-  await new Deno.Command('git', {
-    args: ['commit', '-m', `Bump ${bumpType} version to ${newVersion}`],
-  }).output();
+// Git operations (only when version bumping)
+console.log('📝 Committing changes...');
+await new Deno.Command('git', {
+  args: ['add', 'deno.json', 'bin/create-ekko-app'],
+}).output();
+await new Deno.Command('git', {
+  args: ['commit', '-m', `Bump ${bumpType} version to ${newVersion}`],
+}).output();
 
-  console.log('🏷️  Creating version tag...');
-  const tagName = `v${newVersion}`;
-  await new Deno.Command('git', { args: ['tag', tagName] }).output();
+console.log('🏷️  Creating version tag...');
+const tagName = `v${newVersion}`;
+await new Deno.Command('git', { args: ['tag', tagName] }).output();
 
-  // Create/update latest tag
-  console.log('🏷️  Updating latest tag...');
-  await new Deno.Command('git', { args: ['tag', '-f', 'latest'] }).output();
+// Create/update latest tag
+console.log('🏷️  Updating latest tag...');
+await new Deno.Command('git', { args: ['tag', '-f', 'latest'] }).output();
 
-  console.log('🚀 Pushing to GitHub...');
-  await new Deno.Command('git', { args: ['push', 'origin', 'main'] }).output();
-  await new Deno.Command('git', { args: ['push', 'origin', '--tags', '--force'] }).output();
-}
+console.log('🚀 Pushing to GitHub...');
+await new Deno.Command('git', { args: ['push', 'origin', 'main'] }).output();
+await new Deno.Command('git', { args: ['push', 'origin', '--tags', '--force'] }).output();
 
 console.log('📦 Native binary generated for npm');
 
@@ -116,7 +122,7 @@ if (shouldBumpVersion && bumpType && newVersion) {
   console.log('🏷️  Latest tag updated to point to this release');
   console.log('\n💡 To test locally, run: npm pack');
 } else {
-  console.log('✅ No version bump requested - binary built for local testing');
+  console.log('Binary rebuilt and pushed to GitHub');
   console.log('💡 To test locally, run: npm pack');
   console.log(
     '💡 To publish with version bump, use: deno task publish --patch (or --minor/--major)'
