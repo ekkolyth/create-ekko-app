@@ -114,7 +114,7 @@ async function main(projectNameArg?: string): Promise<void> {
   // STEP 3: Summary
   console.log("\n📋 Summary of selections:");
   console.log(
-    `  Framework: ${framework === "next" ? "Next JS" : "TanStack Start"}`,
+    `  ✓ ${framework === "next" ? "Next JS" : "TanStack Start"}`,
   );
   if (authChoice !== "none") {
     console.log(`  ✓ ${authChoice === "clerk" ? "Clerk" : "Better Auth"}`);
