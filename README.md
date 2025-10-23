@@ -1,20 +1,12 @@
 # create-ekko-app
 
-Opinionated wrapper around `create-next-app` that installs your preferred stack in one go.
+Opinionated React Starter for minimal time from "open laptop" to "working on your fullstack app with tools that provide full Type Safety and great DX.
 
 ## Usage
+To use the app in cli, simply:
 
-### Using Deno (Recommended)
-
-```bash
-deno run -A jsr:@mikekenway/create-ekko-app my-app
 ```
-
-Or with the deno install command:
-
-```bash
-deno install -A -n create-ekko-app jsr:@mikekenway/create-ekko-app
-create-ekko-app my-app
+pnpm dlx create-ekko-app@latest
 ```
 
 ## Development
@@ -29,11 +21,6 @@ deno task dev
 
 ```bash
 deno task build
-```
-
-### Reminder to myself for pushing new versions
-```bash
-deno task publish
 ```
 
 This will create a compiled binary in `./build/create-ekko-app`
