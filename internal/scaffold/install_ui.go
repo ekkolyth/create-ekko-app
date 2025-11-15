@@ -44,7 +44,8 @@ type installModel struct {
 	chunks chan string
 	done   chan error
 
-	percent float64
+	percent      float64
+	stepProgress float64
 }
 
 func newInstallModel(ctx context.Context, steps []installStep) *installModel {
@@ -95,9 +96,15 @@ func (m *installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case stepChunkMsg:
 		m.appendChunk(msg.text)
-		return m, m.waitForActivity()
+		var cmds []tea.Cmd
+		if cmd := m.bumpStepProgress(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+		cmds = append(cmds, m.waitForActivity())
+		return m, tea.Batch(cmds...)
 	case stepFinishedMsg:
-		m.percent = float64(m.current+1) / float64(len(m.steps))
+		m.stepProgress = 1
+		m.percent = m.currentPercent()
 		progressCmd := m.progress.SetPercent(m.percent)
 
 		if msg.err != nil {
@@ -172,6 +179,9 @@ func (m *installModel) writeWrapped(body string) {
 func (m *installModel) startCurrentStep() tea.Cmd {
 	step := m.steps[m.current]
 	m.appendHeader(step.title)
+	m.stepProgress = 0
+	m.percent = m.currentPercent()
+	progressCmd := m.progress.SetPercent(m.percent)
 
 	m.chunks = make(chan string)
 	m.done = make(chan error, 1)
@@ -187,7 +197,7 @@ func (m *installModel) startCurrentStep() tea.Cmd {
 		m.done <- err
 	}()
 
-	return m.waitForActivity()
+	return tea.Batch(progressCmd, m.waitForActivity())
 }
 
 func (m *installModel) waitForActivity() tea.Cmd {
@@ -207,8 +217,45 @@ func (m *installModel) waitForActivity() tea.Cmd {
 	}
 }
 
+func (m *installModel) currentPercent() float64 {
+	total := len(m.steps)
+	if total == 0 {
+		return 1
+	}
+	if m.stepProgress < 0 {
+		m.stepProgress = 0
+	}
+	if m.stepProgress > 1 {
+		m.stepProgress = 1
+	}
+	return (float64(m.current) + m.stepProgress) / float64(total)
+}
+
+func (m *installModel) bumpStepProgress() tea.Cmd {
+	if len(m.steps) == 0 {
+		return nil
+	}
+	const (
+		chunkStep     = 0.05
+		maxDuringStep = 0.9
+	)
+	if m.stepProgress >= maxDuringStep {
+		return nil
+	}
+	m.stepProgress = minFloat(maxDuringStep, m.stepProgress+chunkStep)
+	m.percent = m.currentPercent()
+	return m.progress.SetPercent(m.percent)
+}
+
 func max(a, b int) int {
 	if a > b {
+		return a
+	}
+	return b
+}
+
+func minFloat(a, b float64) float64 {
+	if a < b {
 		return a
 	}
 	return b
