@@ -3,7 +3,7 @@ name: Publish to npm
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   publish-npm:
@@ -11,6 +11,7 @@ jobs:
     permissions:
       id-token: write
       contents: read
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -24,10 +25,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          registry-url: 'https://registry.npmjs.org/'
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Show Node & npm versions
+        run: |
+          node -v
+          npm -v
 
       - name: Install npm 11.5.1+ for trusted publishing
         run: npm install -g npm@latest
+
+      - name: Verify npm version
+        run: npm -v
 
       - name: Build Go binaries
         run: |
@@ -41,7 +50,26 @@ jobs:
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          node -e "const fs=require('fs'); const rel=JSON.parse(fs.readFileSync('.github/release.json','utf8')); const repoUrl='git+https://github.com/' + process.env.GITHUB_REPOSITORY + '.git'; const pkg={ name: rel.name, version: rel.version, description: 'Opinionated React starter for ekko apps', license: 'MIT', bin: { 'create-ekko-app': 'cli.mjs' }, repository: { type: 'git', url: repoUrl } }; fs.writeFileSync('package.json', JSON.stringify(pkg,null,2));"
+          node -e "
+            const fs = require('fs');
+            const rel = JSON.parse(fs.readFileSync('.github/release.json','utf8'));
+            const repo = process.env.GITHUB_REPOSITORY;
+            const repoUrl = 'git+https://github.com/' + repo + '.git';
+            const homepage = 'https://github.com/' + repo + '#readme';
+            const bugsUrl = 'https://github.com/' + repo + '/issues';
+
+            const pkg = {
+              name: rel.name,
+              version: rel.version,
+              description: 'CLI for scaffolding an Ekko app with selectable framework, auth, database, and tooling.',
+              license: 'MIT',
+              bin: { 'create-ekko-app': 'cli.mjs' },
+              repository: { type: 'git', url: repoUrl },
+              homepage,
+              bugs: { url: bugsUrl }
+            };
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+          "
 
       - name: Check package info
         run: |
@@ -50,5 +78,7 @@ jobs:
           echo "Checking if version exists on npm..."
           npm view $(node -p "require('./package.json').name")@$(node -p "require('./package.json').version") version || echo "No existing version match - Publishing"
 
-      - name: Publish to npm
-        run: npm publish --provenance --verbose
+      - name: Publish to npm (OIDC trusted publishing)
+        env:
+          NPM_CONFIG_PROVENANCE: true
+        run: npm publish --access public --verbose
