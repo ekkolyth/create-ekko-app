@@ -42,17 +42,39 @@ This will:
 
 ### How npm publish works
 
-Publishing is handled in CI:
+Publishing is handled in CI using **trusted publishing with OIDC** (no tokens required):
 
 - The GitHub Actions workflow triggers on pushes of tags matching `v*`.
 - The `publish-npm` job:
   - Checks out the repo.
+  - Sets up Node.js with npm 11.5.1+ (required for trusted publishing).
   - Copies `.github/package.json` to `dist/package.json`.
   - Runs `npm publish` from the `dist` directory using trusted publishing (OIDC).
+  - Automatically generates provenance attestations.
+
+#### Setting up trusted publishing (one-time setup)
+
+Before publishing, you must configure the trusted publisher on npmjs.com:
+
+1. Go to your package settings: `https://www.npmjs.com/settings/[your-username]/packages`
+2. Select your package (or create it first if it doesn't exist)
+3. Go to **Settings** → **Trusted Publishers**
+4. Click **Add Trusted Publisher**
+5. Select **GitHub Actions** as the provider
+6. Configure:
+   - **Repository**: `ekkolyth/create-ekko-app` (or your org/repo)
+   - **Workflow file name**: `publish.yml` (must match exactly, case-sensitive, include `.yml` extension)
+7. Save the configuration
+
+**Important**: The workflow filename (`publish.yml`) must match exactly what you configure on npmjs.com, including the `.yml` extension and case sensitivity.
+
+**Note**: Provenance is automatically generated when using trusted publishing from a public repository. No additional flags needed.
 
 In practice:
 
 - **Local**: you run `make publish` (or `make publish.minor` / `.major`), optionally with `DRY_RUN=1`.
-- **Remote**: CI sees the new `vX.Y.Z` tag and publishes that version to npm.
+- **Remote**: CI sees the new `vX.Y.Z` tag and publishes that version to npm using trusted publishing.
+
+For more details, see: https://docs.npmjs.com/trusted-publishers
 
 

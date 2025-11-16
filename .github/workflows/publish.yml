@@ -21,11 +21,16 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Setup Node.js (npm 11+)
+      - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: 22 # or 20, but 22 ships with newer npm
+          node-version: 22
           registry-url: "https://registry.npmjs.org"
+
+      # Ensure npm 11.5.1 or later for trusted publishing
+      # See: https://docs.npmjs.com/trusted-publishers
+      - name: Update npm to latest
+        run: npm install -g npm@latest
 
       - name: Show Node & npm versions
         run: |
@@ -61,8 +66,11 @@ jobs:
             echo "Package does not exist on npm - first time publish"
           fi
 
+      # Trusted publishing via OIDC
+      # Provenance is automatically generated when using trusted publishing
+      # Make sure you've configured the trusted publisher on npmjs.com first:
+      # https://www.npmjs.com/settings/[your-username]/packages -> [package-name] -> Settings -> Trusted Publishers
+      # Workflow filename must match exactly: publish.yml (case-sensitive)
       - name: Publish to npm (trusted publishing via OIDC)
         working-directory: dist
-        env:
-          NPM_CONFIG_PROVENANCE: true
-        run: npm publish --provenance --access public --verbose
+        run: npm publish --access public --verbose
