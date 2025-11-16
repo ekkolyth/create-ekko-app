@@ -87,7 +87,11 @@ func (m *installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		vpWidth := max(20, msg.Width-4)
-		vpHeight := max(8, (msg.Height/2)-4)
+		// Use up to half of the available height for the logs viewport, but cap it
+		// so it doesn't get excessively tall on very large terminals.
+		// A cap of 18 rows is roughly equivalent to ~300px in a typical terminal.
+		const maxViewportHeight = 18
+		vpHeight := minInt(maxViewportHeight, max(8, (msg.Height/2)-4))
 		m.viewport.Width = vpWidth
 		m.viewport.Height = vpHeight
 		m.progress.Width = vpWidth
@@ -249,6 +253,13 @@ func (m *installModel) bumpStepProgress() tea.Cmd {
 
 func max(a, b int) int {
 	if a > b {
+		return a
+	}
+	return b
+}
+
+func minInt(a, b int) int {
+	if a < b {
 		return a
 	}
 	return b
