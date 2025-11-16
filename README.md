@@ -1,26 +1,39 @@
-# create-ekko-app
+## create-ekko-app
 
-Opinionated React Starter for minimal time from "open laptop" to "working on your fullstack app with tools that provide full Type Safety and great DX.
+CLI for scaffolding an Ekko app with selectable framework, auth, database, and tooling.
 
 ## Usage
-To use the app in cli, simply:
 
-```
+From npm:
+
+```bash
 pnpm dlx create-ekko-app@latest
+```
+
+You can optionally pass the project name:
+
+```bash
+pnpm dlx create-ekko-app@latest my-app
+```
+
+Print the CLI version:
+
+```bash
+create-ekko-app -version
 ```
 
 ## Development
 
-### Running locally
+Build the Go binary:
 
 ```bash
-deno task dev
+make build
 ```
 
-### Building
+Run the CLI from source:
 
 ```bash
-deno task build
+make go
 ```
 
-This will create a compiled binary in `./build/create-ekko-app`
+Release version bumping and npm publishing are handled via `make publish*` targets and GitHub Actions (see `docs/releasing.md`).
