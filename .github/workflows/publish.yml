@@ -26,6 +26,9 @@ jobs:
           node-version: 20
           registry-url: 'https://registry.npmjs.org/'
 
+      - name: Install npm 11.5.1+ for trusted publishing
+        run: npm install -g npm@latest
+
       - name: Build Go binaries
         run: |
           mkdir -p dist
@@ -35,8 +38,10 @@ jobs:
           GOOS=linux GOARCH=arm64 go build -o dist/create-ekko-app-linux-arm64 ./cmd/create-ekko-app
 
       - name: Generate package.json from release.json
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          node -e "const fs=require('fs'); const rel=JSON.parse(fs.readFileSync('release.json','utf8')); const pkg={ name: rel.name, version: rel.version, description: 'Opinionated React starter for ekko apps', license: 'MIT', bin: { 'create-ekko-app': 'cli.mjs' }, repository: { type: 'git', url: 'git+https://github.com/mikekenway/create-ekko-app.git' } }; fs.writeFileSync('package.json', JSON.stringify(pkg,null,2));"
+          node -e "const fs=require('fs'); const rel=JSON.parse(fs.readFileSync('.github/release.json','utf8')); const repoUrl='git+https://github.com/' + process.env.GITHUB_REPOSITORY + '.git'; const pkg={ name: rel.name, version: rel.version, description: 'Opinionated React starter for ekko apps', license: 'MIT', bin: { 'create-ekko-app': 'cli.mjs' }, repository: { type: 'git', url: repoUrl } }; fs.writeFileSync('package.json', JSON.stringify(pkg,null,2));"
 
       - name: Check package info
         run: |
