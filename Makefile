@@ -37,7 +37,11 @@ publish.current:
 	else \
 		CURRENT_VERSION=$$(go run ./cmd/release-version); \
 		echo "Publishing current version $$CURRENT_VERSION"; \
-		git tag -a "v$$CURRENT_VERSION" -m "Release v$$CURRENT_VERSION"; \
+		if git rev-parse "v$$CURRENT_VERSION" >/dev/null 2>&1; then \
+			echo "Tag v$$CURRENT_VERSION already exists locally, skipping creation"; \
+		else \
+			git tag -a "v$$CURRENT_VERSION" -m "Release v$$CURRENT_VERSION"; \
+		fi; \
 		git push origin HEAD; \
 		git push origin "v$$CURRENT_VERSION"; \
 	fi
