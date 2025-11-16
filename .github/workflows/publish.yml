@@ -9,7 +9,7 @@ jobs:
   publish-npm:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
+      id-token: write # needed for OIDC / trusted publishing
       contents: read
 
     steps:
@@ -27,16 +27,16 @@ jobs:
           node-version: 20
           registry-url: "https://registry.npmjs.org"
 
+      # IMPORTANT: actually switch npm to a new version via Corepack
+      - name: Enable Corepack and use latest npm
+        run: |
+          corepack enable
+          corepack prepare npm@latest --activate
+
       - name: Show Node & npm versions
         run: |
           node -v
           npm -v
-
-      - name: Install npm 11.5.1+ for trusted publishing
-        run: npm install -g npm@latest
-
-      - name: Verify npm version
-        run: npm -v
 
       - name: Build Go binaries
         run: |
@@ -46,39 +46,19 @@ jobs:
           GOOS=linux GOARCH=amd64 go build -o dist/create-ekko-app-linux-amd64 ./cmd/create-ekko-app
           GOOS=linux GOARCH=arm64 go build -o dist/create-ekko-app-linux-arm64 ./cmd/create-ekko-app
 
-      - name: Generate package.json from release.json
-        env:
-          GITHUB_REPOSITORY: ${{ github.repository }}
-        run: |
-          node -e "
-            const fs = require('fs');
-            const rel = JSON.parse(fs.readFileSync('.github/release.json','utf8'));
-            const repo = process.env.GITHUB_REPOSITORY;
-            const repoUrl = 'git+https://github.com/' + repo + '.git';
-            const homepage = 'https://github.com/' + repo + '#readme';
-            const bugsUrl = 'https://github.com/' + repo + '/issues';
-
-            const pkg = {
-              name: rel.name,
-              version: rel.version,
-              description: 'CLI for scaffolding an Ekko app with selectable framework, auth, database, and tooling.',
-              license: 'MIT',
-              bin: { 'create-ekko-app': 'cli.mjs' },
-              repository: { type: 'git', url: repoUrl },
-              homepage,
-              bugs: { url: bugsUrl }
-            };
-            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
-          "
+      - name: Copy package.json to dist
+        run: cp .github/package.json dist/package.json
 
       - name: Check package info
+        working-directory: dist
         run: |
           echo "Package name: $(node -p "require('./package.json').name")"
           echo "Package version: $(node -p "require('./package.json').version")"
           echo "Checking if version exists on npm..."
           npm view $(node -p "require('./package.json').name")@$(node -p "require('./package.json').version") version || echo "No existing version match - Publishing"
 
-      - name: Publish to npm (OIDC trusted publishing)
+      - name: Publish to npm (trusted publishing via OIDC)
+        working-directory: dist
         env:
           NPM_CONFIG_PROVENANCE: true
         run: npm publish --access public --verbose

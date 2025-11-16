@@ -10,7 +10,7 @@ build:
 go: build
 	go run ./cmd/create-ekko-app
 
-# Bump the version in .github/release.json and, for non-dry runs, commit the change,
+# Bump the version in package.json and, for non-dry runs, commit the change,
 # create a git tag, and push. Default bump level is "patch".
 publish: publish.patch
 
@@ -23,7 +23,7 @@ publish.minor:
 publish.major:
 	$(MAKE) _publish LEVEL=major
 
-# Publish the current version from .github/release.json without bumping it.
+# Publish the current version from package.json without bumping it.
 # For non-dry runs, creates a git tag and pushes to origin.
 publish.current:
 	@if [ "$$(git status --porcelain)" != "" ]; then \
@@ -58,7 +58,7 @@ _publish:
 	else \
 		NEXT_VERSION=$$(go run ./cmd/release-bump -level=$(LEVEL)); \
 		echo "Bumped version to $$NEXT_VERSION"; \
-		git add .github/release.json; \
+		git add .github/package.json; \
 		git commit -m "chore: release v$$NEXT_VERSION"; \
 		git tag -a "v$$NEXT_VERSION" -m "Release v$$NEXT_VERSION"; \
 		git push origin HEAD; \

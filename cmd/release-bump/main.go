@@ -9,9 +9,15 @@ import (
 	"strings"
 )
 
-type releaseInfo struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
+type packageInfo struct {
+	Name            string            `json:"name"`
+	Version         string            `json:"version"`
+	Description     string            `json:"description,omitempty"`
+	License         string            `json:"license,omitempty"`
+	Bin             map[string]string `json:"bin,omitempty"`
+	Repository      map[string]string `json:"repository,omitempty"`
+	Homepage        string            `json:"homepage,omitempty"`
+	Bugs            map[string]string `json:"bugs,omitempty"`
 }
 
 func main() {
@@ -19,15 +25,15 @@ func main() {
 	dryRun := flag.Bool("dry-run", false, "print the new version without writing changes")
 	flag.Parse()
 
-	info, err := readRelease()
+	info, err := readPackage()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "read .github/release.json:", err)
+		fmt.Fprintln(os.Stderr, "read .github/package.json:", err)
 		os.Exit(1)
 	}
 
 	current := strings.TrimSpace(info.Version)
 	if current == "" {
-		fmt.Fprintln(os.Stderr, ".github/release.json: version is empty")
+		fmt.Fprintln(os.Stderr, ".github/package.json: version is empty")
 		os.Exit(1)
 	}
 
@@ -43,33 +49,33 @@ func main() {
 	}
 
 	info.Version = next
-	if err := writeRelease(info); err != nil {
-		fmt.Fprintln(os.Stderr, "write .github/release.json:", err)
+	if err := writePackage(info); err != nil {
+		fmt.Fprintln(os.Stderr, "write .github/package.json:", err)
 		os.Exit(1)
 	}
 
 	fmt.Println(next)
 }
 
-func readRelease() (*releaseInfo, error) {
-	data, err := os.ReadFile(".github/release.json")
+func readPackage() (*packageInfo, error) {
+	data, err := os.ReadFile(".github/package.json")
 	if err != nil {
 		return nil, err
 	}
-	var info releaseInfo
+	var info packageInfo
 	if err := json.Unmarshal(data, &info); err != nil {
 		return nil, err
 	}
 	return &info, nil
 }
 
-func writeRelease(info *releaseInfo) error {
+func writePackage(info *packageInfo) error {
 	data, err := json.MarshalIndent(info, "", "  ")
 	if err != nil {
 		return err
 	}
 	data = append(data, '\n')
-	return os.WriteFile(".github/release.json", data, 0o644)
+	return os.WriteFile(".github/package.json", data, 0o644)
 }
 
 func bumpVersion(current, level string) (string, error) {
