@@ -3,7 +3,7 @@ name: Publish to JSR and npm
 on:
   push:
     tags:
-      - "v*"
+      - 'v*'
 
 jobs:
   publish-npm:
@@ -12,29 +12,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Deno
-        uses: denoland/setup-deno@v1
-        with:
-          deno-version: "2.0.6"
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          registry-url: "https://registry.npmjs.org/"
+          registry-url: 'https://registry.npmjs.org/'
 
-      # Remove Lockfile for Clean Start
-      - name: Handle lockfile compatibility
+      - name: Generate package.json from release.json
         run: |
-          rm -f deno.lock
-
-      - name: Generate package.json from deno.json
-        run: deno task sync-package
-
-        # Generate cli.mjs from TS
-      - name: Generate JavaScript from TypeScript
-        run: |
-          deno task build:npm
+          node -e "const fs=require('fs'); const rel=JSON.parse(fs.readFileSync('release.json','utf8')); const pkg={ name: rel.name, version: rel.version, description: 'Opinionated React starter for ekko apps', license: 'MIT', bin: { 'create-ekko-app': 'cli.mjs' }, repository: { type: 'git', url: 'git+https://github.com/mikekenway/create-ekko-app.git' } }; fs.writeFileSync('package.json', JSON.stringify(pkg,null,2));"
 
       - name: Check package info
         run: |
@@ -58,7 +44,7 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: "2.0.6"
+          deno-version: '2.0.6'
 
       - name: Remove lockfile compatibility issues
         run: rm -f deno.lock

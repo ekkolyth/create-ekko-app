@@ -123,9 +123,11 @@ func (r *runner) scaffoldFramework(write func(string), cfg options.Config) error
 		return r.exec(write, "", "pnpm", "create", "@tanstack/start@latest", cfg.ProjectName)
 	default:
 		return r.exec(write,
+			"",
 			"pnpm",
 			"dlx",
 			"create-next-app@latest",
+			"--yes",
 			cfg.ProjectName,
 			"--app",
 			"--ts",
@@ -159,18 +161,6 @@ func (r *runner) installDependencies(projectPath string, deps []string, write fu
 func (r *runner) shadcnSteps(projectPath string, cfg options.Config) []installStep {
 	if cfg.SkipShadcnOps || !hasTool(cfg.Tooling, options.ToolShadcn) {
 		return nil
-	}
-
-	if cfg.Framework != options.FrameworkNext {
-		return []installStep{
-			{
-				title: "shadcn automation",
-				run: func(_ context.Context, write func(string)) error {
-					write("ℹ️ shadcn automation currently targets Next.js. Skipping for TanStack Start.\n")
-					return nil
-				},
-			},
-		}
 	}
 
 	color := defaultColor(cfg.ShadcnColor)

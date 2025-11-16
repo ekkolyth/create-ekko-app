@@ -268,6 +268,7 @@ type summaryModel struct {
 	confirmed    bool
 	width        int
 	height       int
+	revealIndex  int
 	animSpring   harmonica.Spring
 	animPos      float64
 	animVelocity float64
@@ -283,9 +284,12 @@ type summaryModel struct {
 func newSummaryModel(items []string) *summaryModel {
 	return &summaryModel{
 		items:      items,
-		animSpring: harmonica.NewSpring(harmonica.FPS(60), 5.0, 0.25),
+		// Softer spring with more damping; overall speed is maintained via threshold
+		animSpring: harmonica.NewSpring(harmonica.FPS(60), 9.0, 0.8),
 		animTarget: 1.0,
 		animating:  true,
+		// Start revealing from the first item
+		revealIndex: 0,
 		headerStyle: lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#f4dfff")).
 			Bold(true).
@@ -308,13 +312,17 @@ func newSummaryModel(items []string) *summaryModel {
 type springMsg struct{}
 
 func tickSpring() tea.Cmd {
-	return tea.Tick(time.Millisecond*32, func(time.Time) tea.Msg {
+	// Faster tick for smoother, quicker animation
+	return tea.Tick(time.Millisecond*16, func(time.Time) tea.Msg {
 		return springMsg{}
 	})
 }
 
 func (m *summaryModel) Init() tea.Cmd {
 	if m.animating {
+		// Reset animation state for the first item
+		m.animPos = 0
+		m.animVelocity = 0
 		return tickSpring()
 	}
 	return nil
@@ -339,10 +347,21 @@ func (m *summaryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 		m.animPos, m.animVelocity = m.animSpring.Update(m.animPos, m.animVelocity, m.animTarget)
-		if math.Abs(m.animPos-m.animTarget) < 0.02 {
+		// Finish each item fairly early to keep overall fan speed up,
+		// even with lower stiffness and higher damping.
+		if math.Abs(m.animPos-m.animTarget) < 0.08 {
+			// Clamp and advance to reveal next item
 			m.animPos = m.animTarget
-			m.animating = false
-			return m, nil
+			// Move to next item; if all revealed, stop animating
+			if m.revealIndex >= len(m.items)-1 {
+				m.animating = false
+				return m, nil
+			}
+			m.revealIndex++
+			// Reset spring for the next item fan-in
+			m.animPos = 0
+			m.animVelocity = 0
+			return m, tickSpring()
 		}
 		return m, tickSpring()
 	}
@@ -353,21 +372,34 @@ func (m *summaryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *summaryModel) View() string {
 	header := m.headerStyle.Render("📋 Summary")
 
-	indent := 2 + int(4*m.animPos)
-	colorIdx := int(m.animPos * float64(len(pulsePalette)-1))
-	if colorIdx < 0 {
-		colorIdx = 0
+	// Compute dynamic styles for the currently animating item
+	curIndent := 2 + int(4*m.animPos)
+	curColorIdx := int(m.animPos * float64(len(pulsePalette)-1))
+	if curColorIdx < 0 {
+		curColorIdx = 0
 	}
-	if colorIdx >= len(pulsePalette) {
-		colorIdx = len(pulsePalette) - 1
+	if curColorIdx >= len(pulsePalette) {
+		curColorIdx = len(pulsePalette) - 1
 	}
-	bulletColor := lipgloss.Color(pulsePalette[colorIdx])
-	bulletStyle := lipgloss.NewStyle().Foreground(bulletColor)
+	curBulletColor := lipgloss.Color(pulsePalette[curColorIdx])
+	curBulletStyle := lipgloss.NewStyle().Foreground(curBulletColor)
+
+	// Final, fully-revealed styles
+	finalIndent := 2 + int(4*1.0)
+	finalBulletColor := lipgloss.Color(pulsePalette[len(pulsePalette)-1])
+	finalBulletStyle := lipgloss.NewStyle().Foreground(finalBulletColor)
 
 	var rows []string
-	for _, item := range m.items {
-		bullet := bulletStyle.Render("●")
-		line := fmt.Sprintf("%s%s %s", strings.Repeat(" ", indent), bullet, m.itemStyle.Render(item))
+	// Render fully revealed items
+	for i := 0; i < m.revealIndex && i < len(m.items); i++ {
+		bullet := finalBulletStyle.Render("●")
+		line := fmt.Sprintf("%s%s %s", strings.Repeat(" ", finalIndent), bullet, m.itemStyle.Render(m.items[i]))
+		rows = append(rows, line)
+	}
+	// Render the currently animating item (fan-in)
+	if m.revealIndex >= 0 && m.revealIndex < len(m.items) {
+		bullet := curBulletStyle.Render("●")
+		line := fmt.Sprintf("%s%s %s", strings.Repeat(" ", curIndent), bullet, m.itemStyle.Render(m.items[m.revealIndex]))
 		rows = append(rows, line)
 	}
 
