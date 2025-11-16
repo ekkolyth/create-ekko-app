@@ -30,7 +30,7 @@ function resolveBinary() {
     process.exit(1);
   }
 
-  return join(__dirname, 'dist', binaryName);
+  return join(__dirname, binaryName);
 }
 
 const binPath = resolveBinary();
