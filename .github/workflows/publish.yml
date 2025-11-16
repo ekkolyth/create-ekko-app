@@ -49,16 +49,26 @@ jobs:
       - name: Copy package.json to dist
         run: cp .github/package.json dist/package.json
 
-      - name: Check package info
+      - name: Check package info and authentication
         working-directory: dist
         run: |
-          echo "Package name: $(node -p "require('./package.json').name")"
-          echo "Package version: $(node -p "require('./package.json').version")"
-          echo "Checking if version exists on npm..."
-          npm view $(node -p "require('./package.json').name")@$(node -p "require('./package.json').version") version || echo "No existing version match - Publishing"
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          echo "Package name: $PACKAGE_NAME"
+          echo "Package version: $PACKAGE_VERSION"
+          echo "Checking npm authentication..."
+          npm whoami || echo "Not authenticated (this is expected with OIDC)"
+          echo "Checking if package exists on npm..."
+          if npm view "$PACKAGE_NAME" version 2>/dev/null; then
+            echo "Package exists on npm"
+            echo "Checking if version $PACKAGE_VERSION already exists..."
+            npm view "$PACKAGE_NAME@$PACKAGE_VERSION" version 2>/dev/null && echo "Version $PACKAGE_VERSION already published" || echo "Version $PACKAGE_VERSION not found - will publish"
+          else
+            echo "Package does not exist on npm - first time publish"
+          fi
 
       - name: Publish to npm (trusted publishing via OIDC)
         working-directory: dist
         env:
           NPM_CONFIG_PROVENANCE: true
-        run: npm publish --access public --verbose
+        run: npm publish --provenance --access public --verbose
