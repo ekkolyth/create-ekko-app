@@ -1,6 +1,6 @@
 .PHONY: go build publish publish.patch publish.minor publish.major
 
-DRY_RUN ?= 1
+DRY_RUN ?= 0
 
 # Build the Go CLI binary
 build:

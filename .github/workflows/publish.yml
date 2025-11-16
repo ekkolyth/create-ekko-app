@@ -1,4 +1,4 @@
-name: Publish to JSR and npm
+name: Publish to npm
 
 on:
   push:
@@ -33,23 +33,3 @@ jobs:
         run: npm publish --verbose
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-  publish-jsr:
-    runs-on: ubuntu-latest
-    needs: publish-npm
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Deno
-        uses: denoland/setup-deno@v1
-        with:
-          deno-version: '2.0.6'
-
-      - name: Remove lockfile compatibility issues
-        run: rm -f deno.lock
-
-      - name: Publish to JSR
-        run: deno publish --no-check --allow-dirty --token $JSR_TOKEN
-        env:
-          JSR_TOKEN: ${{ secrets.JSR_TOKEN }}
