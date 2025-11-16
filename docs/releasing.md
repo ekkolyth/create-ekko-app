@@ -2,7 +2,7 @@
 
 This project uses a simple, tag-driven release flow:
 
-- **Source of truth**: `release.json` (fields: `name`, `version`)
+- **Source of truth**: `.github/release.json` (fields: `name`, `version`)
 - **Version bumps**: via `make publish` and related targets
 - **Publishing**: GitHub Actions publishes to npm on `v*` tags
 
@@ -14,14 +14,17 @@ This project uses a simple, tag-driven release flow:
   - `make publish` (or `make publish.patch`) – patch bump.
   - `make publish.minor` – minor bump.
   - `make publish.major` – major bump.
+- **Publish without bumping**: `make publish.current` – publishes the current version from `.github/release.json` without bumping it.
 
 On a non–dry run, `make publish` will:
 
 1. Ensure the working tree is clean.
-2. Bump the version in `release.json` using the chosen level.
-3. Commit the updated `release.json` with message `chore: release vX.Y.Z`.
+2. Bump the version in `.github/release.json` using the chosen level.
+3. Commit the updated `.github/release.json` with message `chore: release vX.Y.Z`.
 4. Create an annotated tag `vX.Y.Z`.
 5. Push the current branch and the new tag to `origin`.
+
+The `make publish.current` command works similarly but skips steps 2-3 (no version bump or commit), and directly creates a tag for the current version in `.github/release.json`.
 
 ### Dry runs
 
@@ -33,7 +36,7 @@ make publish.minor DRY_RUN=1
 
 This will:
 
-- Read the current version from `release.json`.
+- Read the current version from `.github/release.json`.
 - Print the next version and the tag it would create.
 - **Not** modify files, commit, tag, or push.
 
@@ -44,7 +47,7 @@ Publishing is handled in CI:
 - The GitHub Actions workflow triggers on pushes of tags matching `v*`.
 - The `publish-npm` job:
   - Checks out the repo.
-  - Reads `release.json` and generates a `package.json` with the same `name` and `version`.
+  - Reads `.github/release.json` and generates a `package.json` with the same `name` and `version`.
   - Runs `npm publish` using the `NPM_TOKEN` secret.
 
 In practice:

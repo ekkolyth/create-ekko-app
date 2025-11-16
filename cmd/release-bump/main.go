@@ -21,13 +21,13 @@ func main() {
 
 	info, err := readRelease()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "read release.json:", err)
+		fmt.Fprintln(os.Stderr, "read .github/release.json:", err)
 		os.Exit(1)
 	}
 
 	current := strings.TrimSpace(info.Version)
 	if current == "" {
-		fmt.Fprintln(os.Stderr, "release.json: version is empty")
+		fmt.Fprintln(os.Stderr, ".github/release.json: version is empty")
 		os.Exit(1)
 	}
 
@@ -44,7 +44,7 @@ func main() {
 
 	info.Version = next
 	if err := writeRelease(info); err != nil {
-		fmt.Fprintln(os.Stderr, "write release.json:", err)
+		fmt.Fprintln(os.Stderr, "write .github/release.json:", err)
 		os.Exit(1)
 	}
 
@@ -52,7 +52,7 @@ func main() {
 }
 
 func readRelease() (*releaseInfo, error) {
-	data, err := os.ReadFile("release.json")
+	data, err := os.ReadFile(".github/release.json")
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func writeRelease(info *releaseInfo) error {
 		return err
 	}
 	data = append(data, '\n')
-	return os.WriteFile("release.json", data, 0o644)
+	return os.WriteFile(".github/release.json", data, 0o644)
 }
 
 func bumpVersion(current, level string) (string, error) {
