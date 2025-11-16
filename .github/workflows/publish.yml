@@ -28,15 +28,38 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       # IMPORTANT: actually switch npm to a new version via Corepack
+      # Note: This must happen AFTER setup-node to preserve OIDC authentication
       - name: Enable Corepack and use latest npm
         run: |
+          # Save the .npmrc before Corepack (if it exists)
+          if [ -f "$HOME/.npmrc" ]; then
+            cp "$HOME/.npmrc" "$HOME/.npmrc.backup"
+          fi
           corepack enable
           corepack prepare npm@latest --activate
+          # Restore .npmrc after Corepack to preserve authentication
+          if [ -f "$HOME/.npmrc.backup" ]; then
+            cp "$HOME/.npmrc.backup" "$HOME/.npmrc"
+          fi
 
       - name: Show Node & npm versions
         run: |
           node -v
           npm -v
+          
+      - name: Verify npm authentication
+        run: |
+          echo "Checking npm registry configuration..."
+          npm config get registry
+          echo "Verifying authentication (OIDC should be automatic)..."
+          # OIDC auth is handled by setup-node, but let's verify the token exists
+          if [ -f "$HOME/.npmrc" ]; then
+            echo "✓ .npmrc file exists"
+            # Don't print the actual token for security
+            grep -q "//registry.npmjs.org/:_authToken" "$HOME/.npmrc" && echo "✓ Auth token found in .npmrc" || echo "⚠ No auth token in .npmrc"
+          else
+            echo "⚠ .npmrc file not found"
+          fi
 
       - name: Build Go binaries
         run: |
