@@ -48,6 +48,9 @@ jobs:
       - name: Copy package.json to dist
         run: cp .github/package.json dist/package.json
 
+      - name: Copy cli.mjs to dist
+        run: cp .github/cli.mjs dist/cli.mjs
+
       - name: Check package info and authentication
         working-directory: dist
         run: |
