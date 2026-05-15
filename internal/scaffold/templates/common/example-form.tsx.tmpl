@@ -1,0 +1,60 @@
+'use client';
+
+import { useForm } from '@tanstack/react-form';
+{{- if .UseZod }}
+import { z } from 'zod';
+
+const schema = z.object({
+  email: z.string().email(),
+  message: z.string().min(1),
+});
+{{- end }}
+
+export function ExampleForm() {
+  const form = useForm({
+    defaultValues: { email: '', message: '' },
+    {{- if .UseZod }}
+    validators: { onChange: schema },
+    {{- end }}
+    onSubmit: async ({ value }) => {
+      console.log('submit', value);
+    },
+  });
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        form.handleSubmit();
+      }}
+      className="flex flex-col gap-3"
+    >
+      <form.Field
+        name="email"
+        children={(field) => (
+          <input
+            value={field.state.value}
+            onChange={(e) => field.handleChange(e.target.value)}
+            placeholder="Email"
+            className="border rounded-sm px-2 py-1"
+          />
+        )}
+      />
+      <form.Field
+        name="message"
+        children={(field) => (
+          <textarea
+            value={field.state.value}
+            onChange={(e) => field.handleChange(e.target.value)}
+            placeholder="Message"
+            className="border rounded-sm px-2 py-1"
+          />
+        )}
+      />
+      <button type="submit" className="border rounded-sm px-3 py-1">
+        Send
+      </button>
+    </form>
+  );
+}
