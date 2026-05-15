@@ -7,7 +7,6 @@ import (
 	"github.com/mikekenway/create-ekko-app/internal/scaffold/templates"
 )
 
-// BuildBiome installs Biome as a dev dep and writes a project biome.json.
 func BuildBiome(in Input) Step {
 	return Step{
 		Title: "Install and configure Biome",

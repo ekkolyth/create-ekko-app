@@ -26,7 +26,6 @@ type Runner interface {
 
 type execRunner struct{}
 
-// NewRunner returns a Runner that performs real side effects.
 func NewRunner() Runner { return &execRunner{} }
 
 func (r *execRunner) Exec(ctx context.Context, dir, name string, args []string, write func(string)) error {
@@ -85,10 +84,9 @@ func (r *execRunner) RemoveAll(path string) error          { return os.RemoveAll
 func (r *execRunner) Stat(path string) (fs.FileInfo, error) { return os.Stat(path) }
 
 
-// stepsAdapter wraps a scaffold.Runner so step builders (which see steps.Runner) can use it.
 type stepsAdapter struct{ inner Runner }
 
-// adaptForSteps wraps a scaffold.Runner as a steps.Runner.
+// breaks the scaffold <-> steps import cycle
 func adaptForSteps(r Runner) steps.Runner { return &stepsAdapter{inner: r} }
 
 func (s *stepsAdapter) Exec(ctx context.Context, dir, name string, args []string, write func(string)) error {
