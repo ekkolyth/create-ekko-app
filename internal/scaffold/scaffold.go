@@ -47,8 +47,8 @@ func Run(ctx context.Context, cfg options.Config, logger *log.Logger) error {
 	logger.Info("Next steps:")
 	logger.Infof("  cd %s", cfg.ProjectName)
 	if cfg.Database == options.DatabaseDrizzle {
-		logger.Info("  docker compose up -d  # start Postgres")
-		logger.Info("  bun run db:migrate    # after creating migrations")
+		logger.Info("  docker compose up -d                  # start Postgres")
+		logger.Info("  bunx drizzle-kit push                 # sync schema to db (dev)")
 	}
 	logger.Info("  bun dev")
 	return nil
