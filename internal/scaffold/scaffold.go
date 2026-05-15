@@ -75,7 +75,7 @@ func buildPlan(in steps.Input) []steps.Step {
 
 	switch cfg.Database {
 	case options.DatabaseConvex:
-		plan = append(plan, steps.BuildConvex(in)...)
+		plan = append(plan, steps.BuildConvexInstall(in)...)
 	case options.DatabaseDrizzle:
 		plan = append(plan, steps.BuildDrizzle(in))
 	}
@@ -101,6 +101,13 @@ func buildPlan(in steps.Input) []steps.Step {
 
 	keys := collectEnvKeys(plan)
 	plan = append(plan, steps.BuildEnvLocal(in, keys))
+
+	// Convex provisioning runs after env aggregator so its writes survive
+	// the static-key write.
+	if cfg.Database == options.DatabaseConvex {
+		plan = append(plan, steps.BuildConvexProvision(in))
+	}
+
 	return plan
 }
 

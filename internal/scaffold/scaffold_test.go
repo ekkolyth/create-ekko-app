@@ -74,6 +74,29 @@ func TestBetterAuthForcesDrizzleInPlan(t *testing.T) {
 	}
 }
 
+func TestBuildPlanConvexProvisionRunsAfterEnv(t *testing.T) {
+	cfg := options.Config{
+		ProjectName: "demo", Framework: options.FrameworkNext, Database: options.DatabaseConvex,
+	}
+	cfg.Normalize()
+	plan := buildPlan(steps.Input{Cfg: cfg, ProjectPath: "/p"})
+	var envIdx, provisionIdx int = -1, -1
+	for i, s := range plan {
+		if s.Title == "Write .env.local" {
+			envIdx = i
+		}
+		if s.Title == "Provision Convex deployment" {
+			provisionIdx = i
+		}
+	}
+	if envIdx == -1 || provisionIdx == -1 {
+		t.Fatalf("missing steps; env=%d provision=%d", envIdx, provisionIdx)
+	}
+	if provisionIdx <= envIdx {
+		t.Fatalf("provision (%d) must run after env (%d)", provisionIdx, envIdx)
+	}
+}
+
 func TestCollectEnvKeysAggregates(t *testing.T) {
 	cfg := options.Config{
 		ProjectName: "demo", Framework: options.FrameworkNext,

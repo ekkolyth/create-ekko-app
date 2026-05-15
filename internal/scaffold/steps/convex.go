@@ -8,10 +8,8 @@ import (
 	"github.com/mikekenway/create-ekko-app/internal/scaffold/templates"
 )
 
-// BuildConvex installs convex, writes a provider, then runs convex dev once to
-// provision a deployment. Login will be prompted on the user's terminal if
-// needed (fail-fast: any error bubbles up and aborts the run).
-func BuildConvex(in Input) []Step {
+// BuildConvexInstall installs convex and writes a provider component.
+func BuildConvexInstall(in Input) []Step {
 	add := Step{
 		Title: "Install Convex",
 		Run: func(ctx context.Context, write func(string)) error {
@@ -40,7 +38,14 @@ func BuildConvex(in Input) []Step {
 		},
 	}
 
-	init := Step{
+	return []Step{add, provider}
+}
+
+// BuildConvexProvision runs `bunx convex dev --once --configure=new`. The
+// command logs in if needed and writes deployment env keys to .env.local.
+// Run this AFTER the env aggregator so its writes survive.
+func BuildConvexProvision(in Input) Step {
+	return Step{
 		Title: "Provision Convex deployment",
 		Run: func(ctx context.Context, write func(string)) error {
 			err := in.Runner.Exec(ctx, in.ProjectPath, "bunx",
@@ -51,6 +56,4 @@ func BuildConvex(in Input) []Step {
 			return nil
 		},
 	}
-
-	return []Step{add, provider, init}
 }
