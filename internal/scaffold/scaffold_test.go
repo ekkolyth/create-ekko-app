@@ -1,74 +1,98 @@
 package scaffold
 
 import (
-	"slices"
 	"testing"
 
 	"github.com/mikekenway/create-ekko-app/internal/options"
+	"github.com/mikekenway/create-ekko-app/internal/scaffold/steps"
 )
 
-func TestCollectDependenciesFullStack(t *testing.T) {
+func TestBuildPlanFullStackNext(t *testing.T) {
 	cfg := options.Config{
-		Framework: options.FrameworkNext,
-		Auth:      options.AuthClerk,
-		Database:  options.DatabaseDrizzle,
+		ProjectName: "demo",
+		Framework:   options.FrameworkNext,
+		Auth:        options.AuthBetterAuth,
+		Database:    options.DatabaseDrizzle,
 		Tooling: []options.ToolingOption{
+			options.ToolBiome, options.ToolZod,
 			options.ToolShadcn,
-			options.ToolReactEmail,
-			options.ToolResend,
-			options.ToolTanstackQuery,
-			options.ToolTanstackForm,
+			options.ToolReactEmail, options.ToolResend,
+			options.ToolTanstackQuery, options.ToolTanstackForm,
 		},
 	}
-
-	got := collectDependencies(cfg)
-	want := []string{
-		"class-variance-authority",
-		"clsx",
-		"tailwindcss-animate",
-		"lucide-react",
-		"tailwind-merge",
-		"@clerk/nextjs",
-		"drizzle-orm",
-		"@react-email/components",
-		"@react-email/render",
-		"resend",
-		"@tanstack/react-query",
-		"@tanstack/react-form",
+	cfg.Normalize()
+	in := steps.Input{Cfg: cfg, ProjectPath: "/p"}
+	plan := buildPlan(in)
+	if len(plan) == 0 {
+		t.Fatal("empty plan")
 	}
-
-	if !slices.Equal(got, want) {
-		t.Fatalf("unexpected deps:\nwant %v\n got %v", want, got)
+	if plan[len(plan)-1].Title != "Write .env.local" {
+		t.Fatalf("expected env last, got %s", plan[len(plan)-1].Title)
 	}
 }
 
-func TestCollectDependenciesTanstackStart(t *testing.T) {
+func TestBuildPlanMinimalNext(t *testing.T) {
+	cfg := options.Config{ProjectName: "demo", Framework: options.FrameworkNext}
+	cfg.Normalize()
+	in := steps.Input{Cfg: cfg, ProjectPath: "/p"}
+	plan := buildPlan(in)
+	if plan[0].Title != "Create Next.js project" {
+		t.Fatalf("expected Next first, got %s", plan[0].Title)
+	}
+	if plan[len(plan)-1].Title != "Write .env.local" {
+		t.Fatalf("expected env last, got %s", plan[len(plan)-1].Title)
+	}
+}
+
+func TestBuildPlanTanstackBaseFirst(t *testing.T) {
+	cfg := options.Config{ProjectName: "demo", Framework: options.FrameworkTanstackStart}
+	cfg.Normalize()
+	plan := buildPlan(steps.Input{Cfg: cfg, ProjectPath: "/p"})
+	if plan[0].Title != "Create TanStack Start project" {
+		t.Fatalf("expected TanStack first, got %s", plan[0].Title)
+	}
+}
+
+func TestBetterAuthForcesDrizzleInPlan(t *testing.T) {
 	cfg := options.Config{
-		Framework: options.FrameworkTanstackStart,
-		Auth:      options.AuthBetterAuth,
-		Database:  options.DatabaseConvex,
-		Tooling: []options.ToolingOption{
-			options.ToolResend,
-		},
+		ProjectName: "demo", Framework: options.FrameworkNext,
+		Auth: options.AuthBetterAuth, Database: options.DatabaseNone,
 	}
-
-	got := collectDependencies(cfg)
-	want := []string{
-		"better-auth",
-		"convex",
-		"resend",
+	cfg.Normalize()
+	if cfg.Database != options.DatabaseDrizzle {
+		t.Fatal("Normalize did not coerce DB to Drizzle")
 	}
-
-	if !slices.Equal(got, want) {
-		t.Fatalf("unexpected deps:\nwant %v\n got %v", want, got)
+	plan := buildPlan(steps.Input{Cfg: cfg, ProjectPath: "/p"})
+	var hasDrizzle bool
+	for _, s := range plan {
+		if s.Title == "Install and configure Drizzle (Postgres)" {
+			hasDrizzle = true
+		}
+	}
+	if !hasDrizzle {
+		t.Fatal("plan missing drizzle step")
 	}
 }
 
-func TestDefaultColor(t *testing.T) {
-	if got := defaultColor(""); got != "zinc" {
-		t.Fatalf("expected zinc fallback, got %s", got)
+func TestCollectEnvKeysAggregates(t *testing.T) {
+	cfg := options.Config{
+		ProjectName: "demo", Framework: options.FrameworkNext,
+		Auth:    options.AuthClerk,
+		Tooling: []options.ToolingOption{options.ToolResend},
 	}
-	if got := defaultColor("stone"); got != "stone" {
-		t.Fatalf("expected stone, got %s", got)
+	cfg.Normalize()
+	plan := buildPlan(steps.Input{Cfg: cfg, ProjectPath: "/p"})
+	keys := collectEnvKeys(plan)
+	var hasClerk, hasResend bool
+	for _, key := range keys {
+		if key.Section == "Clerk" {
+			hasClerk = true
+		}
+		if key.Section == "Resend" {
+			hasResend = true
+		}
+	}
+	if !hasClerk || !hasResend {
+		t.Fatalf("missing env sections: clerk=%v resend=%v", hasClerk, hasResend)
 	}
 }

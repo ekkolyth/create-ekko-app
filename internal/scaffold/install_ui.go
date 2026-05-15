@@ -12,6 +12,11 @@ import (
 	"github.com/muesli/reflow/wordwrap"
 )
 
+type installStep struct {
+	title string
+	run   func(context.Context, func(string)) error
+}
+
 func runInstallUI(ctx context.Context, steps []installStep) error {
 	model := newInstallModel(ctx, steps)
 	program := tea.NewProgram(model, tea.WithContext(ctx))
