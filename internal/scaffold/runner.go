@@ -3,7 +3,6 @@ package scaffold
 import (
 	"bufio"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -85,8 +84,6 @@ func (r *execRunner) MkdirAll(path string) error           { return os.MkdirAll(
 func (r *execRunner) RemoveAll(path string) error          { return os.RemoveAll(path) }
 func (r *execRunner) Stat(path string) (fs.FileInfo, error) { return os.Stat(path) }
 
-// ErrCommandNotFound is returned for missing executables.
-var ErrCommandNotFound = errors.New("command not found")
 
 // stepsAdapter wraps a scaffold.Runner so step builders (which see steps.Runner) can use it.
 type stepsAdapter struct{ inner Runner }
