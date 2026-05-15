@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+
+	"github.com/mikekenway/create-ekko-app/internal/scaffold/steps"
 )
 
 // Runner abstracts side effects so step builders are testable.
@@ -85,3 +87,19 @@ func (r *execRunner) Stat(path string) (fs.FileInfo, error) { return os.Stat(pat
 
 // ErrCommandNotFound is returned for missing executables.
 var ErrCommandNotFound = errors.New("command not found")
+
+// stepsAdapter wraps a scaffold.Runner so step builders (which see steps.Runner) can use it.
+type stepsAdapter struct{ inner Runner }
+
+// adaptForSteps wraps a scaffold.Runner as a steps.Runner.
+func adaptForSteps(r Runner) steps.Runner { return &stepsAdapter{inner: r} }
+
+func (s *stepsAdapter) Exec(ctx context.Context, dir, name string, args []string, write func(string)) error {
+	return s.inner.Exec(ctx, dir, name, args, write)
+}
+
+func (s *stepsAdapter) WriteFile(path string, content []byte, mode steps.FileMode) error {
+	return s.inner.WriteFile(path, content, fs.FileMode(mode))
+}
+
+func (s *stepsAdapter) MkdirAll(path string) error { return s.inner.MkdirAll(path) }
