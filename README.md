@@ -1,19 +1,12 @@
 ## create-ekko-app
 
-CLI for scaffolding an Ekko app with selectable framework, auth, database, and tooling.
+CLI that scaffolds a working full-stack TypeScript app with your choice of framework, auth, database, and tooling. Each option produces real wiring — providers, middleware, schemas, env files, docker-compose — not just deps.
 
 ## Usage
 
-From npm:
-
 ```bash
-pnpm dlx create-ekko-app@latest
-```
-
-You can optionally pass the project name:
-
-```bash
-pnpm dlx create-ekko-app@latest my-app
+bunx create-ekko-app@latest
+bunx create-ekko-app@latest my-app
 ```
 
 Print the CLI version:
@@ -22,18 +15,25 @@ Print the CLI version:
 create-ekko-app -version
 ```
 
+## Supported Stack
+
+- **Frameworks**: Next.js (App Router), TanStack Start
+- **Auth**: Clerk, Better Auth (forces Drizzle)
+- **Database**: Convex, Drizzle (Postgres local via docker-compose)
+- **Tooling**: shadcn (all components), TanStack Query, TanStack Form, React Email, Resend, Biome, Zod
+
+## Requirements
+
+- [Bun](https://bun.sh) installed (the CLI uses Bun for everything)
+- For Convex: ability to log into the Convex CLI during scaffolding
+- For Drizzle: Docker + Docker Compose
+
 ## Development
 
-Build the Go binary:
-
 ```bash
-make build
+make build      # build binary into bin/
+make go         # build and run from source
+go test ./...   # run tests
 ```
 
-Run the CLI from source:
-
-```bash
-make go
-```
-
-Release version bumping and npm publishing are handled via `make publish*` targets and GitHub Actions (see `docs/releasing.md`).
+Release flow: see `docs/releasing.md`.
