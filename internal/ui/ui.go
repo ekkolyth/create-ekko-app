@@ -422,10 +422,3 @@ var pulsePalette = []string{
 	"#ffd6ff",
 	"#bde0fe",
 }
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}

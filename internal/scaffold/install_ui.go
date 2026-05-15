@@ -91,7 +91,7 @@ func (m *installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// so it doesn't get excessively tall on very large terminals.
 		// A cap of 18 rows is roughly equivalent to ~300px in a typical terminal.
 		const maxViewportHeight = 18
-		vpHeight := minInt(maxViewportHeight, max(8, (msg.Height/2)-4))
+		vpHeight := min(maxViewportHeight, max(8, (msg.Height/2)-4))
 		m.viewport.Width = vpWidth
 		m.viewport.Height = vpHeight
 		m.progress.Width = vpWidth
@@ -246,28 +246,7 @@ func (m *installModel) bumpStepProgress() tea.Cmd {
 	if m.stepProgress >= maxDuringStep {
 		return nil
 	}
-	m.stepProgress = minFloat(maxDuringStep, m.stepProgress+chunkStep)
+	m.stepProgress = min(maxDuringStep, m.stepProgress+chunkStep)
 	m.percent = m.currentPercent()
 	return m.progress.SetPercent(m.percent)
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
-func minInt(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-func minFloat(a, b float64) float64 {
-	if a < b {
-		return a
-	}
-	return b
 }
