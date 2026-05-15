@@ -49,8 +49,7 @@ type installModel struct {
 	chunks chan string
 	done   chan error
 
-	percent      float64
-	stepProgress float64
+	percent float64
 }
 
 func newInstallModel(ctx context.Context, steps []installStep) *installModel {
@@ -105,28 +104,19 @@ func (m *installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case stepChunkMsg:
 		m.appendChunk(msg.text)
-		var cmds []tea.Cmd
-		if cmd := m.bumpStepProgress(); cmd != nil {
-			cmds = append(cmds, cmd)
-		}
-		cmds = append(cmds, m.waitForActivity())
-		return m, tea.Batch(cmds...)
+		return m, m.waitForActivity()
 	case stepFinishedMsg:
-		m.stepProgress = 1
-		m.percent = m.currentPercent()
-		progressCmd := m.progress.SetPercent(m.percent)
-
 		if msg.err != nil {
 			m.err = msg.err
-			return m, tea.Batch(progressCmd, tea.Quit)
+			m.recalcPercent()
+			return m, tea.Batch(m.progress.SetPercent(m.percent), tea.Quit)
 		}
-
 		m.current++
+		m.recalcPercent()
 		if m.current >= len(m.steps) {
-			return m, tea.Batch(progressCmd, tea.Quit)
+			return m, tea.Batch(m.progress.SetPercent(m.percent), tea.Quit)
 		}
-
-		return m, tea.Batch(progressCmd, m.startCurrentStep())
+		return m, tea.Batch(m.progress.SetPercent(m.percent), m.startCurrentStep())
 	}
 
 	var cmd tea.Cmd
@@ -188,9 +178,6 @@ func (m *installModel) writeWrapped(body string) {
 func (m *installModel) startCurrentStep() tea.Cmd {
 	step := m.steps[m.current]
 	m.appendHeader(step.title)
-	m.stepProgress = 0
-	m.percent = m.currentPercent()
-	progressCmd := m.progress.SetPercent(m.percent)
 
 	m.chunks = make(chan string)
 	m.done = make(chan error, 1)
@@ -206,7 +193,7 @@ func (m *installModel) startCurrentStep() tea.Cmd {
 		m.done <- err
 	}()
 
-	return tea.Batch(progressCmd, m.waitForActivity())
+	return m.waitForActivity()
 }
 
 func (m *installModel) waitForActivity() tea.Cmd {
@@ -226,32 +213,11 @@ func (m *installModel) waitForActivity() tea.Cmd {
 	}
 }
 
-func (m *installModel) currentPercent() float64 {
+func (m *installModel) recalcPercent() {
 	total := len(m.steps)
 	if total == 0 {
-		return 1
+		m.percent = 1
+		return
 	}
-	if m.stepProgress < 0 {
-		m.stepProgress = 0
-	}
-	if m.stepProgress > 1 {
-		m.stepProgress = 1
-	}
-	return (float64(m.current) + m.stepProgress) / float64(total)
-}
-
-func (m *installModel) bumpStepProgress() tea.Cmd {
-	if len(m.steps) == 0 {
-		return nil
-	}
-	const (
-		chunkStep     = 0.05
-		maxDuringStep = 0.9
-	)
-	if m.stepProgress >= maxDuringStep {
-		return nil
-	}
-	m.stepProgress = min(maxDuringStep, m.stepProgress+chunkStep)
-	m.percent = m.currentPercent()
-	return m.progress.SetPercent(m.percent)
+	m.percent = float64(m.current) / float64(total)
 }
