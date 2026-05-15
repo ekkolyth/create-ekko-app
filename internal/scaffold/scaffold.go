@@ -28,7 +28,6 @@ func Run(ctx context.Context, cfg options.Config, logger *log.Logger) error {
 
 	runner := NewRunner()
 	in := steps.Input{
-		Ctx:         ctx,
 		Cfg:         cfg,
 		ProjectPath: projectPath,
 		Runner:      adaptForSteps(runner),

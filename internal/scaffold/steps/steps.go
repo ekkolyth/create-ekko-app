@@ -24,7 +24,6 @@ type Step struct {
 
 // Input is what every builder receives.
 type Input struct {
-	Ctx         context.Context
 	Cfg         options.Config
 	ProjectPath string
 	Runner      Runner
