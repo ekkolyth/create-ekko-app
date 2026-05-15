@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"slices"
 	"strings"
 	"sync"
 
@@ -159,7 +158,7 @@ func (r *runner) installDependencies(projectPath string, deps []string, write fu
 }
 
 func (r *runner) shadcnSteps(projectPath string, cfg options.Config) []installStep {
-	if cfg.SkipShadcnOps || !hasTool(cfg.Tooling, options.ToolShadcn) {
+	if !cfg.HasTool(options.ToolShadcn) {
 		return nil
 	}
 
@@ -268,7 +267,7 @@ func (r *runner) exec(write func(string), dir string, name string, args ...strin
 
 func collectDependencies(cfg options.Config) []string {
 	var deps []string
-	if hasTool(cfg.Tooling, options.ToolShadcn) {
+	if cfg.HasTool(options.ToolShadcn) {
 		deps = append(deps,
 			"class-variance-authority",
 			"clsx",
@@ -296,27 +295,23 @@ func collectDependencies(cfg options.Config) []string {
 		deps = append(deps, "drizzle-orm")
 	}
 
-	if hasTool(cfg.Tooling, options.ToolReactEmail) {
+	if cfg.HasTool(options.ToolReactEmail) {
 		deps = append(deps, "@react-email/components", "@react-email/render")
 	}
 
-	if hasTool(cfg.Tooling, options.ToolResend) {
+	if cfg.HasTool(options.ToolResend) {
 		deps = append(deps, "resend")
 	}
 
-	if hasTool(cfg.Tooling, options.ToolTanstackQuery) {
+	if cfg.HasTool(options.ToolTanstackQuery) {
 		deps = append(deps, "@tanstack/react-query")
 	}
 
-	if hasTool(cfg.Tooling, options.ToolTanstackForm) {
+	if cfg.HasTool(options.ToolTanstackForm) {
 		deps = append(deps, "@tanstack/react-form")
 	}
 
 	return deps
-}
-
-func hasTool(tooling []options.ToolingOption, needle options.ToolingOption) bool {
-	return slices.Contains(tooling, needle)
 }
 
 func defaultColor(value string) string {
