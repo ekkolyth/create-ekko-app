@@ -1,0 +1,20 @@
+import { Body, Container, Head, Heading, Html, Preview, Text } from '@react-email/components';
+
+interface Props {
+  name?: string;
+}
+
+export default function Welcome({ name = 'there' }: Props) {
+  return (
+    <Html>
+      <Head />
+      <Preview>Welcome aboard</Preview>
+      <Body style={{ "{{" }}fontFamily: 'system-ui'{{ "}}" }}>
+        <Container>
+          <Heading>Hi {name}</Heading>
+          <Text>Glad you're here.</Text>
+        </Container>
+      </Body>
+    </Html>
+  );
+}
