@@ -86,6 +86,11 @@ func runForm(ctx context.Context, initial options.Config) (options.Config, error
 				Value(&authVal),
 		),
 		huh.NewGroup(
+			huh.NewNote().
+				Title("Better Auth needs a database").
+				Description("We'll enable Drizzle (Postgres) for you."),
+		).WithHideFunc(func() bool { return authVal != string(options.AuthBetterAuth) }),
+		huh.NewGroup(
 			huh.NewSelect[string]().
 				Title("Choose your database").
 				Options(
@@ -99,9 +104,11 @@ func runForm(ctx context.Context, initial options.Config) (options.Config, error
 			huh.NewMultiSelect[string]().
 				Title("Choose your tooling").
 				Options(
+					huh.NewOption("Biome (linter+formatter)", string(options.ToolBiome)),
+					huh.NewOption("Zod", string(options.ToolZod)),
+					huh.NewOption("shadcn (all components)", string(options.ToolShadcn)),
 					huh.NewOption("TanStack Query", string(options.ToolTanstackQuery)),
 					huh.NewOption("TanStack Form", string(options.ToolTanstackForm)),
-					huh.NewOption("shadcn", string(options.ToolShadcn)),
 					huh.NewOption("React Email", string(options.ToolReactEmail)),
 					huh.NewOption("Resend", string(options.ToolResend)),
 				).
@@ -188,6 +195,10 @@ func buildSummaryItems(cfg options.Config) []string {
 
 	for _, tool := range cfg.Tooling {
 		switch tool {
+		case options.ToolBiome:
+			items = append(items, "Biome")
+		case options.ToolZod:
+			items = append(items, "Zod")
 		case options.ToolShadcn:
 			label := "shadcn"
 			if cfg.ShadcnColor != "" {

@@ -31,6 +31,29 @@ func TestBuildSummaryItems(t *testing.T) {
 	}
 }
 
+func TestBuildSummaryItemsIncludesBiomeAndZod(t *testing.T) {
+	cfg := options.Config{
+		ProjectName: "demo",
+		Framework:   options.FrameworkNext,
+		Tooling: []options.ToolingOption{
+			options.ToolBiome, options.ToolZod,
+		},
+	}
+	items := buildSummaryItems(cfg)
+	var hasBiome, hasZod bool
+	for _, it := range items {
+		if it == "Biome" {
+			hasBiome = true
+		}
+		if it == "Zod" {
+			hasZod = true
+		}
+	}
+	if !hasBiome || !hasZod {
+		t.Fatalf("expected Biome+Zod in summary, got %v", items)
+	}
+}
+
 func TestToToolingOptions(t *testing.T) {
 	items := []string{
 		string(options.ToolShadcn),
