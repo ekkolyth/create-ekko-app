@@ -1,45 +1,47 @@
-# Current TypeScript CLI Behavior
+# CLI Behavior (v2)
 
-## Prompts and Defaults
+## Prompts
 
-- Project name prompt via `Input.prompt`, default `ekko-app`; exits gracefully when empty/cancelled.
-- Framework select uses `Select.prompt` with `Next JS` (`next`, default) and `TanStack Start` (`tanstack-start`).
-- Auth select offers `Clerk`, `Better Auth`, `None` (default `none`).
-- Database select offers `Convex`, `Drizzle`, `None` (default `none`).
-- Tooling checkbox list (`Tanstack Query`, `Tanstack Form`, `shadcn`, `React Email`, `Resend`) with no default selections and `confirmSubmit: false`.
-- If `shadcn` selected, prompt for base color with options `neutral`, `gray`, `zinc` (default), `stone`, `slate`.
+1. **Project name** — text input, defaults to `ekko-app`, skipped if passed as positional arg.
+2. **Framework** — `Next.js` (default) or `TanStack Start`.
+3. **Auth** — `None`, `Clerk`, `Better Auth`.
+4. **Better Auth note** — shown only when Better Auth is selected; explains Drizzle will be enabled.
+5. **Database** — `None`, `Convex`, `Drizzle (Postgres local)`. Coerced to Drizzle when Better Auth is chosen.
+6. **Tooling (multi-select)** — Biome, Zod, shadcn, TanStack Query, TanStack Form, React Email, Resend.
+7. **shadcn base color** — shown only if shadcn selected. Options: neutral, gray, zinc (default), stone, slate.
 
-## Summary Output
+## Summary Screen
 
-- Prints heading `📋 Summary of selections:`.
-- Emits `✓` lines for framework, chosen auth/db, shadcn + color, and any tooling options selected.
+Animated reveal of selections. `enter` to start, `q` / `esc` / `ctrl+c` to abort.
 
-## Scaffold Workflow
+## Install Pipeline
 
-1. Framework scaffold:
-   - `next`: `pnpm dlx create-next-app@latest <name> --app --ts --tailwind --eslint --turbopack --src-dir --use-pnpm --import-alias @/*`.
-   - `tanstack-start`: `pnpm create @tanstack/start@latest <name>`.
-2. `chdir` into project directory.
-3. Build dependency list based on selections:
-   - shadcn: `class-variance-authority clsx tailwindcss-animate lucide-react tailwind-merge`.
-   - auth: `@clerk/nextjs` or `@clerk/clerk-react`, `better-auth`.
-   - db: `convex`, `drizzle-orm`.
-   - email: `@react-email/components`, `@react-email/render`, `resend`.
-   - tooling: `@tanstack/react-query`, `@tanstack/react-form`.
-4. If deps exist: `pnpm add ...`.
-5. Post-install shadcn:
-   - Next: `pnpm dlx shadcn@latest init -y --base-color <color>` then `pnpm dlx shadcn@latest add --all -y`.
-   - TanStack Start: log informational skip.
-6. Attempt `code .` (silent), log fallback instructions if unavailable.
-7. Completion text: done message plus `cd <name>` and `pnpm dev`.
+Steps in order:
 
-## Error Handling
+1. Framework scaffold (`bunx create-next-app` or `bun create @tanstack/start`).
+2. Biome install + `biome.json` written, if selected.
+3. Zod install, if selected.
+4. Database:
+   - Convex: install, write provider, run `bunx convex dev --once --configure=new` (may prompt login).
+   - Drizzle: install, write `drizzle.config.ts`, `src/db/{index,schema}.ts`, `docker-compose.yml`.
+5. Auth:
+   - Clerk: install + middleware + sign-in/up routes (Next) or router integration (TanStack Start).
+   - Better Auth: install + `lib/auth.ts` + `lib/auth-client.ts` + framework route + `bunx @better-auth/cli generate` to write schema.
+6. Email: Resend install + `src/lib/resend.ts`; React Email install + `src/emails/welcome.tsx`.
+7. TanStack Query: install + provider (Next only).
+8. TanStack Form: install + sample form (Zod-validated if Zod selected).
+9. shadcn: `bunx shadcn@latest init --base-color <color>` + `add --all`.
+10. `.env.local` aggregator — last step, merges keys from every selected option.
 
-- `run` helper executes commands synchronously, throws on non-zero exit.
-- All prompts handle cancellation (Input) by exiting with note.
-- shadcn automation is wrapped in try/catch with fallback instructions.
+## Completion
 
-## Non-interactive Invocation
+Prints:
 
-- CLI entry via `Command` accepts optional `[name:string]` argument to skip project-name prompt; other prompts always interactive.
+- `cd <project>`
+- If Drizzle: `docker compose up -d` and `bun run db:migrate`
+- `bun dev`
 
+## Errors
+
+- Convex provisioning failure aborts the run (fail fast — login is required).
+- Other step failures abort the run with the failing step's title and error reported.
