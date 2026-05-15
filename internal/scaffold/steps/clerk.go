@@ -11,10 +11,14 @@ import (
 // BuildClerk installs Clerk and writes framework-appropriate wiring.
 // Next: middleware + sign-in/up routes. TanStack Start: router integration.
 func BuildClerk(in Input) Step {
+	publishableKey := "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"
+	if in.Cfg.Framework == options.FrameworkTanstackStart {
+		publishableKey = "VITE_CLERK_PUBLISHABLE_KEY"
+	}
 	return Step{
 		Title: "Install and wire Clerk",
 		EnvKeys: []EnvKey{
-			{Section: "Clerk", Key: "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY", Value: "pk_test_..."},
+			{Section: "Clerk", Key: publishableKey, Value: "pk_test_..."},
 			{Section: "Clerk", Key: "CLERK_SECRET_KEY", Value: "sk_test_..."},
 		},
 		Run: func(ctx context.Context, write func(string)) error {

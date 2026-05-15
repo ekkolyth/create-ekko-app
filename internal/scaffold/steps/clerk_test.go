@@ -50,3 +50,38 @@ func TestBuildClerkTanstack(t *testing.T) {
 		t.Fatal("clerk integration not written")
 	}
 }
+
+func TestBuildClerkEnvKeyForTanstack(t *testing.T) {
+	step := BuildClerk(Input{
+		ProjectPath: "/p",
+		Cfg:         options.Config{Framework: options.FrameworkTanstackStart},
+	})
+	var foundVite bool
+	for _, k := range step.EnvKeys {
+		if k.Key == "VITE_CLERK_PUBLISHABLE_KEY" {
+			foundVite = true
+		}
+		if k.Key == "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" {
+			t.Fatal("TanStack Start should not emit NEXT_PUBLIC key")
+		}
+	}
+	if !foundVite {
+		t.Fatal("expected VITE_CLERK_PUBLISHABLE_KEY for TanStack Start")
+	}
+}
+
+func TestBuildClerkEnvKeyForNext(t *testing.T) {
+	step := BuildClerk(Input{
+		ProjectPath: "/p",
+		Cfg:         options.Config{Framework: options.FrameworkNext},
+	})
+	var foundNext bool
+	for _, k := range step.EnvKeys {
+		if k.Key == "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" {
+			foundNext = true
+		}
+	}
+	if !foundNext {
+		t.Fatal("expected NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY for Next.js")
+	}
+}
