@@ -1,0 +1,164 @@
+name: Release
+
+on:
+    push:
+        branches: [main]
+
+jobs:
+    version:
+        runs-on: ubuntu-latest
+        if: "!contains(github.event.head_commit.message, '[skip ci]')"
+        outputs:
+            version: ${{ steps.version.outputs.version }}
+            text: ${{ steps.source.outputs.text }}
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v5
+              with:
+                  token: ${{ secrets.RELEASE_TOKEN }}
+
+            - name: Get version source (PR title or commit message)
+              id: source
+              env:
+                  COMMIT_MSG: ${{ github.event.head_commit.message }}
+                  GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+              run: ./scripts/release/version/get-source.sh
+
+            - name: Parse version
+              id: version
+              env:
+                  COMMIT_MSG: ${{ steps.source.outputs.text }}
+              run: ./scripts/release/version/parse.sh
+
+    build:
+        needs: version
+        if: needs.version.outputs.version != ''
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v5
+              with:
+                  token: ${{ secrets.RELEASE_TOKEN }}
+
+            - name: Update package.json version
+              env:
+                  VERSION: ${{ needs.version.outputs.version }}
+              run: ./scripts/release/version/update.sh
+
+            - name: Commit and push version bump
+              env:
+                  VERSION: ${{ needs.version.outputs.version }}
+              run: ./scripts/release/version/commit.sh
+
+            - name: Setup Go
+              uses: actions/setup-go@v6
+              with:
+                  go-version-file: go.mod
+
+            - name: Build binaries for all platforms
+              run: ./scripts/release/build/npm.sh
+
+            - name: Upload npm dist artifact
+              uses: actions/upload-artifact@v5
+              with:
+                  name: npm-dist
+                  path: dist/
+                  retention-days: 1
+
+    release:
+        needs: [version, build]
+        if: needs.version.outputs.version != ''
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v5
+              with:
+                  ref: main
+                  token: ${{ secrets.RELEASE_TOKEN }}
+
+            - name: Download npm dist artifact
+              uses: actions/download-artifact@v5
+              with:
+                  name: npm-dist
+                  path: dist
+
+            - name: Create release archives
+              env:
+                  VERSION: ${{ needs.version.outputs.version }}
+              run: ./scripts/release/create-archives.sh
+
+            - name: Tag and push latest
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+                  git tag -f latest
+                  git push origin latest --force
+
+            - name: Create GitHub Release
+              uses: softprops/action-gh-release@v2
+              with:
+                  tag_name: v${{ needs.version.outputs.version }}
+                  name: Release v${{ needs.version.outputs.version }}
+                  body: ${{ needs.version.outputs.text }}
+                  files: |
+                      dist/create-ekko-app_${{ needs.version.outputs.version }}_darwin_amd64.tar.gz
+                      dist/create-ekko-app_${{ needs.version.outputs.version }}_darwin_arm64.tar.gz
+                      dist/create-ekko-app_${{ needs.version.outputs.version }}_linux_amd64.tar.gz
+                      dist/create-ekko-app_${{ needs.version.outputs.version }}_linux_arm64.tar.gz
+
+    publish:
+        needs: [version, release]
+        if: needs.version.outputs.version != ''
+        runs-on: ubuntu-latest
+        permissions:
+            id-token: write # needed for OIDC / trusted publishing
+            contents: read
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v5
+              with:
+                  ref: main
+                  token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Download npm dist artifact
+              uses: actions/download-artifact@v5
+              with:
+                  name: npm-dist
+                  path: dist
+
+            - name: Restore binary permissions
+              run: chmod +x dist/bin/create-ekko-app-*
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v5
+              with:
+                  node-version: 22
+                  registry-url: "https://registry.npmjs.org"
+
+            # Ensure npm 11.5.1 or later for trusted publishing
+            # https://docs.npmjs.com/trusted-publishers
+            - name: Update npm to latest
+              run: npm install -g npm@latest
+
+            - name: Show Node & npm versions
+              run: |
+                  node -v
+                  npm -v
+
+            - name: Check package info and authentication
+              env:
+                  VERSION: ${{ needs.version.outputs.version }}
+              run: ./scripts/release/check-package-info.sh
+
+            - name: Verify files before publish
+              run: ./scripts/release/verify.sh
+
+            # Trusted publishing via OIDC
+            # Workflow filename must match the configured trusted publisher on npmjs.com (release.yml).
+            - name: Publish to npm
+              working-directory: dist
+              run: npm publish --access public --verbose
