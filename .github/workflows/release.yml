@@ -133,13 +133,13 @@ jobs:
             - name: Setup Node.js
               uses: actions/setup-node@v5
               with:
-                  node-version: 22
+                  node-version: 24
                   registry-url: "https://registry.npmjs.org"
 
-            # Ensure npm 11.5.1 or later for trusted publishing
-            # https://docs.npmjs.com/trusted-publishers
-            - name: Update npm to latest
-              run: npm install -g --force npm@latest
+            # Node 24 ships with npm 11.x — already satisfies trusted publishing minimum.
+            # Skip the global upgrade because the runner's preinstalled npm on some Node
+            # 22.x minors has a missing transitive dep (promise-retry) that makes any
+            # `npm install -g npm@*` fail before it can self-replace.
 
             - name: Show Node & npm versions
               run: |
