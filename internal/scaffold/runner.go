@@ -19,6 +19,7 @@ import (
 type Runner interface {
 	Exec(ctx context.Context, dir string, name string, args []string, write func(string)) error
 	WriteFile(path string, content []byte, mode fs.FileMode) error
+	ReadFile(path string) ([]byte, error)
 	MkdirAll(path string) error
 	RemoveAll(path string) error
 	Stat(path string) (fs.FileInfo, error)
@@ -79,6 +80,7 @@ func (r *execRunner) WriteFile(path string, content []byte, mode fs.FileMode) er
 	return os.WriteFile(path, content, mode)
 }
 
+func (r *execRunner) ReadFile(path string) ([]byte, error) { return os.ReadFile(path) }
 func (r *execRunner) MkdirAll(path string) error           { return os.MkdirAll(path, 0o755) }
 func (r *execRunner) RemoveAll(path string) error          { return os.RemoveAll(path) }
 func (r *execRunner) Stat(path string) (fs.FileInfo, error) { return os.Stat(path) }
@@ -96,5 +98,7 @@ func (s *stepsAdapter) Exec(ctx context.Context, dir, name string, args []string
 func (s *stepsAdapter) WriteFile(path string, content []byte, mode steps.FileMode) error {
 	return s.inner.WriteFile(path, content, fs.FileMode(mode))
 }
+
+func (s *stepsAdapter) ReadFile(path string) ([]byte, error) { return s.inner.ReadFile(path) }
 
 func (s *stepsAdapter) MkdirAll(path string) error { return s.inner.MkdirAll(path) }

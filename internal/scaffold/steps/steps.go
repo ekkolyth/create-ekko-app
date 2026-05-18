@@ -34,6 +34,7 @@ type Input struct {
 type Runner interface {
 	Exec(ctx context.Context, dir, name string, args []string, write func(string)) error
 	WriteFile(path string, content []byte, mode FileMode) error
+	ReadFile(path string) ([]byte, error)
 	MkdirAll(path string) error
 }
 

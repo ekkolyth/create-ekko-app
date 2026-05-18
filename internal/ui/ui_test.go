@@ -68,3 +68,36 @@ func TestToToolingOptions(t *testing.T) {
 		t.Fatalf("unexpected tooling slice: %v", got)
 	}
 }
+
+func TestExpandSelectAllReturnsAllTools(t *testing.T) {
+	got := expandSelectAll([]string{selectAllValue})
+	want := allToolingValues()
+	if !slices.Equal(got, want) {
+		t.Fatalf("expected full tool list, got %v", got)
+	}
+}
+
+func TestExpandSelectAllWithMixedInput(t *testing.T) {
+	// sentinel present alongside other picks: still expand to full set
+	got := expandSelectAll([]string{string(options.ToolZod), selectAllValue})
+	want := allToolingValues()
+	if !slices.Equal(got, want) {
+		t.Fatalf("expected full tool list, got %v", got)
+	}
+}
+
+func TestExpandSelectAllPassthrough(t *testing.T) {
+	in := []string{string(options.ToolBiome), string(options.ToolZod)}
+	got := expandSelectAll(in)
+	if !slices.Equal(got, in) {
+		t.Fatalf("expected unchanged, got %v", got)
+	}
+}
+
+func TestToToolingOptionsDropsSentinel(t *testing.T) {
+	got := toToolingOptions([]string{selectAllValue, string(options.ToolBiome)})
+	want := []options.ToolingOption{options.ToolBiome}
+	if !slices.Equal(got, want) {
+		t.Fatalf("sentinel should be stripped, got %v", got)
+	}
+}

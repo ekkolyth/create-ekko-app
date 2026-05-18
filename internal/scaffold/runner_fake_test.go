@@ -55,6 +55,16 @@ func (r *fakeRunner) WriteFile(path string, content []byte, mode fs.FileMode) er
 	return nil
 }
 
+func (r *fakeRunner) ReadFile(path string) ([]byte, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	f, ok := r.files[path]
+	if !ok {
+		return nil, errors.New("not exist")
+	}
+	return append([]byte(nil), f.Content...), nil
+}
+
 func (r *fakeRunner) MkdirAll(path string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()

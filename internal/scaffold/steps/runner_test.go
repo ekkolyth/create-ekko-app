@@ -1,6 +1,9 @@
 package steps
 
-import "context"
+import (
+	"context"
+	"fmt"
+)
 
 type recordedExec struct {
 	dir, name string
@@ -23,6 +26,13 @@ func (r *recordingRunner) WriteFile(path string, content []byte, _ FileMode) err
 	}
 	r.files[path] = append([]byte(nil), content...)
 	return nil
+}
+
+func (r *recordingRunner) ReadFile(path string) ([]byte, error) {
+	if body, ok := r.files[path]; ok {
+		return append([]byte(nil), body...), nil
+	}
+	return nil, fmt.Errorf("not exist: %s", path)
 }
 
 func (r *recordingRunner) MkdirAll(_ string) error { return nil }
