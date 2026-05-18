@@ -1,0 +1,8 @@
+import { ConvexProvider, ConvexReactClient } from 'convex/react';
+import type { ReactNode } from 'react';
+
+const client = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
+
+export function ConvexRoot({ children }: { children: ReactNode }) {
+  return <ConvexProvider client={client}>{children}</ConvexProvider>;
+}

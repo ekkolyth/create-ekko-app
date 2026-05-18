@@ -86,6 +86,11 @@ func runForm(ctx context.Context, initial options.Config) (options.Config, error
 				Value(&authVal),
 		),
 		huh.NewGroup(
+			huh.NewNote().
+				Title("Better Auth needs a database").
+				Description("We'll enable Drizzle (Postgres) for you."),
+		).WithHideFunc(func() bool { return authVal != string(options.AuthBetterAuth) }),
+		huh.NewGroup(
 			huh.NewSelect[string]().
 				Title("Choose your database").
 				Options(
@@ -98,10 +103,14 @@ func runForm(ctx context.Context, initial options.Config) (options.Config, error
 		huh.NewGroup(
 			huh.NewMultiSelect[string]().
 				Title("Choose your tooling").
+				Description("space toggles • enter confirms").
 				Options(
+					huh.NewOption("Select all", selectAllValue),
+					huh.NewOption("Biome", string(options.ToolBiome)),
+					huh.NewOption("Zod", string(options.ToolZod)),
+					huh.NewOption("shadcn", string(options.ToolShadcn)),
 					huh.NewOption("TanStack Query", string(options.ToolTanstackQuery)),
 					huh.NewOption("TanStack Form", string(options.ToolTanstackForm)),
-					huh.NewOption("shadcn", string(options.ToolShadcn)),
 					huh.NewOption("React Email", string(options.ToolReactEmail)),
 					huh.NewOption("Resend", string(options.ToolResend)),
 				).
@@ -119,6 +128,9 @@ func runForm(ctx context.Context, initial options.Config) (options.Config, error
 				).
 				Value(&shadcnColor),
 		).WithHideFunc(func() bool {
+			if contains(toolSelections, selectAllValue) {
+				return false
+			}
 			return !contains(toolSelections, string(options.ToolShadcn))
 		}),
 	).
@@ -129,6 +141,8 @@ func runForm(ctx context.Context, initial options.Config) (options.Config, error
 	if err := form.RunWithContext(ctx); err != nil {
 		return options.Config{}, err
 	}
+
+	toolSelections = expandSelectAll(toolSelections)
 
 	cfg := options.Config{
 		ProjectName: strings.TrimSpace(projectName),
@@ -188,6 +202,10 @@ func buildSummaryItems(cfg options.Config) []string {
 
 	for _, tool := range cfg.Tooling {
 		switch tool {
+		case options.ToolBiome:
+			items = append(items, "Biome")
+		case options.ToolZod:
+			items = append(items, "Zod")
 		case options.ToolShadcn:
 			label := "shadcn"
 			if cfg.ShadcnColor != "" {
@@ -249,9 +267,38 @@ func defaultString(value, fallback string) string {
 func toToolingOptions(values []string) []options.ToolingOption {
 	out := make([]options.ToolingOption, 0, len(values))
 	for _, v := range values {
+		if v == selectAllValue {
+			continue
+		}
 		out = append(out, options.ToolingOption(v))
 	}
 	return out
+}
+
+// selectAllValue is the sentinel used by the "Select all" pseudo-option in the
+// tooling multi-select. Stored alongside real values; stripped/expanded after
+// form submission.
+const selectAllValue = "__select_all__"
+
+func allToolingValues() []string {
+	return []string{
+		string(options.ToolBiome),
+		string(options.ToolZod),
+		string(options.ToolShadcn),
+		string(options.ToolTanstackQuery),
+		string(options.ToolTanstackForm),
+		string(options.ToolReactEmail),
+		string(options.ToolResend),
+	}
+}
+
+// expandSelectAll returns every tool if the sentinel is present; otherwise
+// returns the input unchanged.
+func expandSelectAll(values []string) []string {
+	if !contains(values, selectAllValue) {
+		return values
+	}
+	return allToolingValues()
 }
 
 func contains(values []string, target string) bool {
@@ -421,11 +468,4 @@ var pulsePalette = []string{
 	"#ffafcc",
 	"#ffd6ff",
 	"#bde0fe",
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
 }

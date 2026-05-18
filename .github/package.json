@@ -6,6 +6,14 @@
   "bin": {
     "create-ekko-app": "cli.mjs"
   },
+  "files": [
+    "README.md",
+    "cli.mjs",
+    "bin/create-ekko-app-darwin-amd64",
+    "bin/create-ekko-app-darwin-arm64",
+    "bin/create-ekko-app-linux-amd64",
+    "bin/create-ekko-app-linux-arm64"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ekkolyth/create-ekko-app.git"
