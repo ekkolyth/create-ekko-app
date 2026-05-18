@@ -139,7 +139,7 @@ jobs:
             # Ensure npm 11.5.1 or later for trusted publishing
             # https://docs.npmjs.com/trusted-publishers
             - name: Update npm to latest
-              run: npm install -g npm@latest
+              run: npm install -g --force npm@latest
 
             - name: Show Node & npm versions
               run: |
